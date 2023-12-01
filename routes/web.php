@@ -14,5 +14,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    //return view('welcome');
+    return DB::select('select EMP_Nombre from Empleados where EMP_EmpleadoId = ?', ['17536E14-762E-44DA-B19A-6E2D1E4C9BA9']);
 });
