@@ -22,6 +22,7 @@ Route::group([
     "middleware" => ["auth:api"]
 ], function () {
 
+    Route::get("home", [ApiController::class, "home"]);
     Route::get("profile", [ApiController::class, "profile"]);
     Route::get("refresh", [ApiController::class, "refreshToken"]);
     Route::get("logout", [ApiController::class, "logout"]);

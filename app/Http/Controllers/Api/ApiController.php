@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Empleados;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
-
+use DB;
 class ApiController extends Controller
 {
     // User Register (POST, formdata)
@@ -65,7 +66,25 @@ class ApiController extends Controller
         //USU_PER_PermisoId
         return response()->json([
             "usuarioId" => $userdata['USU_UsuarioId'],
-            
+            "usuarioNombre" => $userdata['USU_UsuarioId'],
+        ]);
+    }
+    public function home()
+    {
+        $userdata = auth()->user();
+        $empleadoId = $userdata['USU_EMP_EmpleadoId'];
+        $empleado = Empleados::find($empleadoId);
+        //USU_EMP_EmpleadoId
+        //USU_PER_PermisoId 
+        $menu = DB::select("SELECT MPC_orden, MPC_NombreNodo FROM MenuPrincipalConfiguracion INNER JOIN (select PER_PermisoId, PER_TipoPermiso, PERD_MPC_NodoId
+        from Permisos inner join PermisosDetalle on PER_PermisoId = PERD_PER_PermisoId
+        inner join Usuarios on USU_PER_PermisoId=PER_PermisoId WHERE USU_UsuarioId = ?)
+        AS aaa ON MPC_NodoId = PERD_MPC_NodoId WHERE MPC_App = 1 AND MPC_Activo = 1 order by MPC_Orden", [$userdata['USU_UsuarioId']]);
+        
+        return response()->json([
+            "usuarioId" => $userdata['USU_UsuarioId'],
+            "usuarioNombre" => $empleado->EMP_CodigoEmpleado . ' ' . $empleado->EMP_Nombre .' '. $empleado->EMP_PrimerApellido .' '. $empleado->EMP_SegundoApellido,
+            "usuarioMenu" => $menu
         ]);
     }
 
