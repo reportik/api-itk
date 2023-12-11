@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use DB;
 use App\Models\User;
 use App\Models\Empleados;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Arr;
+use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+
 class ApiController extends Controller
 {
     // User Register (POST, formdata)
@@ -77,15 +79,29 @@ class ApiController extends Controller
         $empleado = Empleados::find($empleadoId);
         //USU_EMP_EmpleadoId
         //USU_PER_PermisoId 
-        $menu = DB::select("SELECT MPC_orden, MPC_NombreNodo FROM MenuPrincipalConfiguracion INNER JOIN (select PER_PermisoId, PER_TipoPermiso, PERD_MPC_NodoId
+        $menu = DB::select("SELECT  mitn.MINVT_Nombre AS MPC_Nodo, MPC_NombreNodo FROM MenuPrincipalConfiguracion INNER JOIN (select PER_PermisoId, PER_TipoPermiso, PERD_MPC_NodoId
         from Permisos inner join PermisosDetalle on PER_PermisoId = PERD_PER_PermisoId
         inner join Usuarios on USU_PER_PermisoId=PER_PermisoId WHERE USU_UsuarioId = ?)
-        AS aaa ON MPC_NodoId = PERD_MPC_NodoId WHERE MPC_App = 1 AND MPC_Activo = 1 order by MPC_Orden", [$userdata['USU_UsuarioId']]);
+        AS aaa ON MPC_NodoId = PERD_MPC_NodoId 
+         inner join RPT_Menu_Invtek mit on mit.INVT_MPC_Id = MPC_NodoId
+		inner join RPT_Menu_Invtek_Nodos mitn on mitn.MINVT_Id = mit.INVT_Nodo
+        WHERE MPC_App = 1 AND MPC_Activo = 1 order by MPC_Orden", [$userdata['USU_UsuarioId']]);
         
+        $nodos = Arr::pluck($menu, 'MPC_Nodo');
+        $nodos = array_unique($nodos);
+        //return $nodos;
+        $menu_app = [];
+        foreach ($nodos as $key => $value) {
+            $array_w = Arr::where($menu, function ($val) use ($value) {
+                return $val->MPC_Nodo == $value;
+            });
+
+            $menu_app[$value] = Arr::pluck($array_w, 'MPC_NombreNodo');
+        }
         return response()->json([
             "usuarioId" => $userdata['USU_UsuarioId'],
             "usuarioNombre" => $empleado->EMP_CodigoEmpleado . ' ' . $empleado->EMP_Nombre .' '. $empleado->EMP_PrimerApellido .' '. $empleado->EMP_SegundoApellido,
-            "usuarioMenu" => $menu
+            "usuarioMenu" => $menu_app
         ]);
     }
 
