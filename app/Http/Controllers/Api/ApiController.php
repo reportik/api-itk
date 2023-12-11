@@ -49,7 +49,7 @@ class ApiController extends Controller
         // JWTAuth
         $user = User::where('USU_Nombre', $request->user)->where('USU_Contrasenia', $request->password)->first();
 
-        if (count($user) == 0) {
+        if (is_null($user)) {
             return response()->json(['error' => 'invalid_credentials'], 401);
         }
         $userToken = JWTAuth::fromUser($user);
