@@ -410,13 +410,13 @@ class ReciboOTBultoController extends Controller {
     public function reciboBultoMovil(){
         \DB::beginTransaction();
         
-        $jsonRecibo = json_decode(\Illuminate\Support\Facades\Request::input('reciboBulto'), true);
+        $jsonRecibo = json_decode(Request::input('reciboBulto'), true);
 
         //$jsonRecibo = json_decode('{"Bulto":" 2905","AlmacenId":"0B2FFBB7-44A4-485F-A2D4-792E281591E5","LocalidadId":"365B6847-1A80-4112-8182-D88315FC0873","EmpleadoId":"D117CCA7-7114-4B55-9EEB-9F8553BF6179"}', true);
 
         //date_default_timezone_set('America/Mexico_City');
 
-        file_put_contents("logs/reciboBulto.txt", date("Y-m-d | h:i:sa")." -->  ".\Illuminate\Support\Facades\Request::input('reciboBulto')."\r\n",FILE_APPEND);
+        //file_put_contents("logs/reciboBulto.txt", date("Y-m-d | h:i:sa")." -->  ".Request::input('reciboBulto')."\r\n",FILE_APPEND);
 
         try{
             ini_set('memory_limit', '-1');
@@ -424,41 +424,44 @@ class ReciboOTBultoController extends Controller {
 
             //date_default_timezone_set('America/Mexico_City');
             $fecha = date('Ymd H:i:s');
-
-            $numeroBulto = trim($jsonRecibo['Bulto']);
+            $bultoId =  trim($jsonRecibo['BultoId']);
+            $complemento = $jsonRecibo['complemento'];
+            //$numeroBulto = trim($jsonRecibo['Bulto']);
             $almacenId = $jsonRecibo['AlmacenId'];
             $localidadId = $jsonRecibo['LocalidadId'];
-            $empleadoId = $jsonRecibo['EmpleadoId'];
+            //$empleadoId = $jsonRecibo['EmpleadoId'];
+            $userdata = auth()->user();
+            $empleadoId = $userdata['USU_EMP_EmpleadoId'];
+          
+            // if(empty($numeroBulto)) {
+            //     throw new \Exception("El número del bulto no puede estar vacío.");
+            // }
+
+            // if(empty($almacenId)) {
+            //     throw new \Exception("El almacén no puede estar vacío.");
+            // }
+
+            // if(empty($localidadId)) {
+            //     throw new \Exception("La localidad no puede estar vacío.");
+            // }
+
             
-            if(empty($numeroBulto)) {
-                throw new \Exception("El número del bulto no puede estar vacío.");
-            }
-
-            if(empty($almacenId)) {
-                throw new \Exception("El almacén no puede estar vacío.");
-            }
-
-            if(empty($localidadId)) {
-                throw new \Exception("La localidad no puede estar vacío.");
-            }
-
-            if(empty($empleadoId)) {
-                throw new \Exception("El empleado no puede estar vacío.");
-            }
-
-            $bul = Bultos::where('BUL_NumeroBulto', '=', $numeroBulto)->join("ControlesMaestrosMultiples", "BUL_CMM_EstatusBultoId", "=", "CMM_ControlId")->first();
-            if(is_null($bul)) {
-                throw new \Exception("No se encontró el bulto $numeroBulto");
-            }
-            else{
-                if($bul->CMM_Valor != "Abierto"){
-                    throw new \Exception("El bulto $numeroBulto es ". $bul->CMM_Valor);
-                }
-            }
+            // $bul = Bultos::where('BUL_NumeroBulto', '=', $numeroBulto)->join("ControlesMaestrosMultiples", "BUL_CMM_EstatusBultoId", "=", "CMM_ControlId")->first();
+            // if(is_null($bul)) {
+            //     throw new \Exception("No se encontró el bulto $numeroBulto");
+            // }
+            // else{
+            //     if($bul->CMM_Valor != "Abierto"){
+            //         throw new \Exception("El bulto $numeroBulto es ". $bul->CMM_Valor);
+            //     }
+            // }
             
-            $bultoDetalle = BultosDetalle::where('BULD_BUL_BultoId', '=', $bul->BUL_BultoId)->get();
-            $complemento = count($bultoDetalle) == 0 ? 1 : 0;
-            $bultoId = $bul->BUL_BultoId;
+            //$bultoDetalle = BultosDetalle::where('BULD_BUL_BultoId', '=', $bul->BUL_BultoId)->get();
+            //$bultoDetalle = BultosDetalle::select('BULD_BUL_BultoId')->where('BULD_BUL_BultoId', '=', $bul->BUL_BultoId)->count();
+             //$complemento = count($bultoDetalle) == 0 ? 1 : 0;
+            // $complemento = $bultoDetalle == 0 ? 1 : 0;
+
+            //$bultoId = $bul->BUL_BultoId;
             
             if($complemento == 0) {
                 $consulta = "
@@ -513,7 +516,7 @@ class ReciboOTBultoController extends Controller {
                         , ART_Nombre
                     HAVING BULD_Cantidad - ISNULL(BOR_Cantidad, 0.0) > 0 ";
 
-                $bulto = \DB::select(\DB::raw($consulta));
+                $bulto = \DB::select($consulta);
 
                 for ($x = 0; $x < count($bulto); $x++) {
                     $movimientos = new \stdClass();
@@ -580,7 +583,7 @@ class ReciboOTBultoController extends Controller {
                         HAVING OTDA_Cantidad - ISNULL(BOR_Cantidad, 0.0) > 0
                     ";
 
-                    $pendiente = \DB::select(\DB::raw($consulta));
+                    $pendiente = \DB::select($consulta);
 
                     $ot = OrdenesTrabajo::find($ordenTrabajoId);
                     if(count($pendiente) == 0) {
