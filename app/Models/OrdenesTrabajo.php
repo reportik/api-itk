@@ -1,7 +1,7 @@
-<?php namespace Muliix\Models;
+<?php namespace App\Models;
 use DB;
 use Illuminate\Database\Eloquent\Model;
-use Muliix\Models\OrdenesTrabajoDetalleArticulos;
+//use App\Models\OrdenesTrabajoDetalleArticulos;
 
 class OrdenesTrabajo extends Model {
 

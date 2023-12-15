@@ -13,7 +13,7 @@ use App\Models\Lotes;
 use App\Models\TraspasosMovtos;
 use App\Models\BultoOTRecibo;
 use App\Models\Bultos;
-use App\Models\BultosDetalle;
+//use App\Models\BultosDetalle;
 use App\Models\OrdenesTrabajo;
 
 class ReciboOTBultoController extends Controller {
@@ -430,8 +430,8 @@ class ReciboOTBultoController extends Controller {
             $almacenId = $jsonRecibo['AlmacenId'];
             $localidadId = $jsonRecibo['LocalidadId'];
             //$empleadoId = $jsonRecibo['EmpleadoId'];
-            $userdata = auth()->user();
-            $empleadoId = $userdata['USU_EMP_EmpleadoId'];
+           // $userdata = auth()->user();
+            $empleadoId = DataBaseSession::getEmpleadoId();
           
             // if(empty($numeroBulto)) {
             //     throw new \Exception("El número del bulto no puede estar vacío.");
@@ -617,18 +617,12 @@ class ReciboOTBultoController extends Controller {
             );
         } catch (\Exception $e) {
             \DB::rollback();
-
-            echo json_encode(
-                [
-                    "Respuesta" => [
-                        [
-                            'InformacionError' => "Error: " .$e->getMessage(),
-                            'Estatus' => 'Error',
-                            'Mensaje'=> "Error: " .$e->getMessage()
-                        ]
-                    ]
-                ]
-            );
+           echo json_encode(array(
+                "mensaje" => $e->getMessage(),
+                "codigo" => $e->getCode(),
+                "clase" => $e->getFile(),
+                "linea" => $e->getLine()
+           ));
         }
 
     }

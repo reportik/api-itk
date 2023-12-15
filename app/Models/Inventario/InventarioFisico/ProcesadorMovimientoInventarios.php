@@ -1,23 +1,24 @@
-<?php namespace Muliix\Models\Inventario\InventarioFisico;
+<?php namespace App\Models\Inventario\InventarioFisico;
 
-use Illuminate\Database\Eloquent\Model;
-use Muliix\Http\Controllers\Inventario\Almacenes\AlmacenesController;
-use Muliix\Http\Controllers\Inventario\Articulos\ArticulosController;
-use Muliix\Http\Controllers\Inventario\InventarioFisico\InventarioFisicoController;
-use Muliix\Http\Controllers\Inventario\Localidades\LocalidadesArticuloController;
-use Muliix\Http\Controllers\Inventario\Localidades\LocalidadesController;
-use Muliix\Http\Controllers\Inventario\LotesController;
-use Muliix\Http\Controllers\Inventario\LotesLocalidadesController;
-use Muliix\Http\Controllers\Sistema\DataBaseSession;
-use Muliix\Mapeos\Controles\ControlesMaestros;
-use Muliix\Mapeos\Controles\ControlesMaestrosMultiples;
-use Muliix\Models\Inventario\LocalidadesArticulos;
-use Muliix\Models\Inventario\TraspasosLocalidades;
-use Muliix\Models\Localidades;
-use Muliix\Models\Lotes;
-use Muliix\Models\LotesLocalidades;
-use Muliix\Models\TraspasosLotes;
-use Symfony\Component\HttpKernel\Tests\DataCollector\DumpDataCollectorTest;
+//use Illuminate\Database\Eloquent\Model;
+use App\Http\Controllers\Inventario\Almacenes\AlmacenesController;
+use App\Http\Controllers\Inventario\Articulos\ArticulosController;
+//use App\Http\Controllers\Inventario\InventarioFisico\InventarioFisicoController;
+use App\Http\Controllers\Inventario\Localidades\LocalidadesArticuloController;
+use App\Http\Controllers\Inventario\Localidades\LocalidadesController;
+use App\Http\Controllers\Inventario\LotesController;
+use App\Http\Controllers\Inventario\LotesLocalidadesController;
+use App\Http\Controllers\Sistema\DataBaseSession;
+use App\Mapeos\Controles\ControlesMaestros;
+//use App\Mapeos\Controles\ControlesMaestrosMultiples;
+use App\Models\Inventario\LocalidadesArticulos;
+use App\Models\Inventario\TraspasosLocalidades;
+use App\Models\Inventario\InventarioFisico\TraspasoMovto;
+use App\Models\Localidades;
+use App\Models\Lotes;
+use App\Models\LotesLocalidades;
+use App\Models\TraspasosLotes;
+//use Symfony\Component\HttpKernel\Tests\DataCollector\DumpDataCollectorTest;
 
 class ProcesadorMovimientoInventarios {
 
@@ -331,10 +332,10 @@ class ProcesadorMovimientoInventarios {
     }
 
     public static function nuevoId()
-    {        $resultSet = \DB::select(\DB::raw("SELECT NEWID() AS ID"))[0]->ID;
+    {        
+        $resultSet = \DB::select("SELECT NEWID() AS ID");
 
-
-        return $resultSet;
+        return $resultSet[0]->ID;
     }
 
 }

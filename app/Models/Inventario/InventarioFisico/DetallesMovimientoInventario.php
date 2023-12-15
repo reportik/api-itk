@@ -1,7 +1,7 @@
-<?php namespace Muliix\Models\Inventario\InventarioFisico;
+<?php namespace App\Models\Inventario\InventarioFisico;
 
-use Illuminate\Database\Eloquent\Model;
-use Muliix\Models\Lotes;
+//use Illuminate\Database\Eloquent\Model;
+//use App\Models\Lotes;
 
 class DetallesMovimientoInventario {
 

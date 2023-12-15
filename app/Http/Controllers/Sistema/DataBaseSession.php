@@ -1,12 +1,12 @@
-<?php namespace Muliix\Http\Controllers\Sistema;
+<?php namespace App\Http\Controllers\Sistema;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Session;
-use Muliix\Mapeos\Controles\ControlesMaestrosMultiples;
-use Muliix\Models\Almacenes;
-use Muliix\Models\EmpleadosAlmacenes;
-use Muliix\Models\Usuarios;
-use Muliix\Models\Departamentos;
+//use Illuminate\Support\Facades\Cookie;
+//use Illuminate\Support\Facades\Session;
+use App\Mapeos\Controles\ControlesMaestrosMultiples;
+use App\Models\Almacenes;
+use App\Models\EmpleadosAlmacenes;
+use App\Models\Usuarios;
+//use App\Models\Departamentos;
 use Illuminate\Support\Facades\Request;
 
 /**
@@ -58,6 +58,8 @@ class DataBaseSession {
      */
     public static function getEmpleadoId()
     {
+        $userdata = auth()->user();
+        return $userdata['USU_EMP_EmpleadoId'];
 
         if(isset($_COOKIE['muliix_session'])) {
             $valorCookie = $_COOKIE['muliix_session'];

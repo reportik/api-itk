@@ -182,7 +182,7 @@ class DAOGeneralController extends Controller {
     public function nuevoId()
     {
         try{
-            $resultSet = \DB::select(\DB::raw(" SELECT NEWID() AS ID "));
+            $resultSet = \DB::select("SELECT NEWID() AS ID");
 
             return $resultSet[0]->ID;
         }catch (\Exception $e){
@@ -216,7 +216,7 @@ class DAOGeneralController extends Controller {
     public function getFechaHoraServidor()
     {
         try{
-            $resultSet = \DB::select(\DB::raw(" SELECT GETDATE() AS FECHA "));
+            $resultSet = \DB::select("SELECT GETDATE() AS FECHA");
 
             return $resultSet[0]->FECHA;
         }catch (\Exception $e){
