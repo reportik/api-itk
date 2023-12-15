@@ -434,7 +434,8 @@ class ReciboOTBultoController extends Controller {
             $empleadoId = DataBaseSession::getEmpleadoId();
            
             if(empty($numeroBulto)) {
-                throw new \Exception("El número del bulto no puede estar vacío.");
+                return response()->json(['error' => 'El número del bulto no puede estar vacío.'], 401);
+                //throw new \Exception("El número del bulto no puede estar vacío.");
             }
 
             // if(empty($almacenId)) {
@@ -448,11 +449,13 @@ class ReciboOTBultoController extends Controller {
             
             $bul = Bultos::where('BUL_NumeroBulto', '=', $numeroBulto)->join("ControlesMaestrosMultiples", "BUL_CMM_EstatusBultoId", "=", "CMM_ControlId")->first();
             if(is_null($bul)) {
-                throw new \Exception("No se encontró el bulto $numeroBulto");
+                return response()->json(['error' => 'No se encontró el bulto.'], 401);
+                //throw new \Exception("No se encontró el bulto $numeroBulto");
             }
             else{
                 if($bul->CMM_Valor != "Abierto"){
-                    throw new \Exception("El bulto $numeroBulto es ". $bul->CMM_Valor);
+                    return response()->json(['error' => "El bulto $numeroBulto es " . $bul->CMM_Valor], 401);
+                    //throw new \Exception("El bulto $numeroBulto es ". $bul->CMM_Valor);
                 }
             }
             
