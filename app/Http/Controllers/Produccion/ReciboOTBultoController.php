@@ -13,7 +13,7 @@ use App\Models\Lotes;
 use App\Models\TraspasosMovtos;
 use App\Models\BultoOTRecibo;
 use App\Models\Bultos;
-//use App\Models\BultosDetalle;
+use App\Models\BultosDetalle;
 use App\Models\OrdenesTrabajo;
 
 class ReciboOTBultoController extends Controller {
@@ -410,7 +410,7 @@ class ReciboOTBultoController extends Controller {
     public function reciboBultoMovil(){
         \DB::beginTransaction();
         
-        $jsonRecibo = json_decode(Request::input('reciboBulto'), true);
+        //$jsonRecibo = json_decode(Request::input('reciboBulto'), true);
 
         //$jsonRecibo = json_decode('{"Bulto":" 2905","AlmacenId":"0B2FFBB7-44A4-485F-A2D4-792E281591E5","LocalidadId":"365B6847-1A80-4112-8182-D88315FC0873","EmpleadoId":"D117CCA7-7114-4B55-9EEB-9F8553BF6179"}', true);
 
@@ -424,18 +424,18 @@ class ReciboOTBultoController extends Controller {
 
             //date_default_timezone_set('America/Mexico_City');
             $fecha = date('Ymd H:i:s');
-            $bultoId =  trim($jsonRecibo['BultoId']);
-            $complemento = $jsonRecibo['complemento'];
-            //$numeroBulto = trim($jsonRecibo['Bulto']);
-            $almacenId = $jsonRecibo['AlmacenId'];
-            $localidadId = $jsonRecibo['LocalidadId'];
+            //$bultoId =  trim($jsonRecibo['BultoId']);
+            //$complemento = $jsonRecibo['complemento'];
+            $numeroBulto = Request::input('BultoNum'); //trim($jsonRecibo['BultoNum']);
+            $almacenId = "0B2FFBB7-44A4-485F-A2D4-792E281591E5";//$jsonRecibo['AlmacenId'];
+            $localidadId = "62EAAF01-1020-4C75-9503-D58B07FFC6EF";//$jsonRecibo['LocalidadId'];
             //$empleadoId = $jsonRecibo['EmpleadoId'];
            // $userdata = auth()->user();
             $empleadoId = DataBaseSession::getEmpleadoId();
-          
-            // if(empty($numeroBulto)) {
-            //     throw new \Exception("El número del bulto no puede estar vacío.");
-            // }
+           
+            if(empty($numeroBulto)) {
+                throw new \Exception("El número del bulto no puede estar vacío.");
+            }
 
             // if(empty($almacenId)) {
             //     throw new \Exception("El almacén no puede estar vacío.");
@@ -446,22 +446,22 @@ class ReciboOTBultoController extends Controller {
             // }
 
             
-            // $bul = Bultos::where('BUL_NumeroBulto', '=', $numeroBulto)->join("ControlesMaestrosMultiples", "BUL_CMM_EstatusBultoId", "=", "CMM_ControlId")->first();
-            // if(is_null($bul)) {
-            //     throw new \Exception("No se encontró el bulto $numeroBulto");
-            // }
-            // else{
-            //     if($bul->CMM_Valor != "Abierto"){
-            //         throw new \Exception("El bulto $numeroBulto es ". $bul->CMM_Valor);
-            //     }
-            // }
+            $bul = Bultos::where('BUL_NumeroBulto', '=', $numeroBulto)->join("ControlesMaestrosMultiples", "BUL_CMM_EstatusBultoId", "=", "CMM_ControlId")->first();
+            if(is_null($bul)) {
+                throw new \Exception("No se encontró el bulto $numeroBulto");
+            }
+            else{
+                if($bul->CMM_Valor != "Abierto"){
+                    throw new \Exception("El bulto $numeroBulto es ". $bul->CMM_Valor);
+                }
+            }
             
             //$bultoDetalle = BultosDetalle::where('BULD_BUL_BultoId', '=', $bul->BUL_BultoId)->get();
-            //$bultoDetalle = BultosDetalle::select('BULD_BUL_BultoId')->where('BULD_BUL_BultoId', '=', $bul->BUL_BultoId)->count();
-             //$complemento = count($bultoDetalle) == 0 ? 1 : 0;
-            // $complemento = $bultoDetalle == 0 ? 1 : 0;
+            $bultoDetalle = BultosDetalle::select('BULD_BUL_BultoId')->where('BULD_BUL_BultoId', '=', $bul->BUL_BultoId)->count();
+            //$complemento = count($bultoDetalle) == 0 ? 1 : 0;
+            $complemento = $bultoDetalle == 0 ? 1 : 0;
 
-            //$bultoId = $bul->BUL_BultoId;
+            $bultoId = $bul->BUL_BultoId;
             
             if($complemento == 0) {
                 $consulta = "
