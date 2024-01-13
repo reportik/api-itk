@@ -31,3 +31,6 @@ Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers
     Route::any('recibo-ot-bulto-registros', 'ReciboOTBultoController@bultosRegistros');
     Route::any('recibo-ot-bulto-guarda', 'ReciboOTBultoController@reciboBultoMovil');
 });
+Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\CapitalHumano'], function () {
+    Route::any('permisos', 'PermisosController@permisos');
+});
