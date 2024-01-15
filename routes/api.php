@@ -20,9 +20,7 @@ Route::post("login", [ApiController::class, "login"]);
 Route::group([
     "middleware" => ["auth:api"]
 ], function () {
-
     Route::get("home", [ApiController::class, "home"]);
-    Route::get("profile", [ApiController::class, "profile"]);
     Route::get("refresh", [ApiController::class, "refreshToken"]);
     Route::get("logout", [ApiController::class, "logout"]);
 });
@@ -32,5 +30,5 @@ Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers
     Route::any('recibo-ot-bulto-guarda', 'ReciboOTBultoController@reciboBultoMovil');
 });
 Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\CapitalHumano'], function () {
-    Route::any('permisos', 'PermisosController@permisos');
+    Route::any('permisos/tipos', 'PermisosController@permisosTipos');
 });

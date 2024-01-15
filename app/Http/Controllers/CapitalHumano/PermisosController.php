@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Hash;
 class PermisosController extends Controller
 {
     // 
-    public function permisos()
+    public function permisosTipos()
     {
         $permisos = DB::select("SELECT CHE_id AS permisoId, CHE_Estatus AS permiso FROM RPT_Checador_ConfigEstatus WHERE CHE_Tipo = 'INCIDENCIA' AND CHE_Activo = 1");
     

@@ -60,10 +60,12 @@ class ApiController extends Controller
        
     }
 
-    // User Profile (GET)
-    public function profile()
+    
+    public function home()
     {
         $userdata = auth()->user();
+        $empleadoId = $userdata['USU_EMP_EmpleadoId'];
+        //$empleado = Empleados::find($empleadoId);
         $empleado = DB::select("SELECT EMP_EmpleadoId, e.EMP_CodigoEmpleado, e.EMP_Fotografia, 
             e.EMP_Nombre +' '+ e.EMP_PrimerApellido +' '+ e.EMP_SegundoApellido AS EMP_Nombre 
             , d.DEP_DeptoId, d.DEP_Nombre, d.DEP_Codigo
@@ -73,23 +75,6 @@ class ApiController extends Controller
         if (!$empleado) {
             return response()->json(['error' => 'user not found'], 404);
         }
-
-        return response()->json([
-            "EMP_EmpleadoId" => $empleado->EMP_EmpleadoId,
-            "EMP_CodigoEmpleado" => $empleado->EMP_CodigoEmpleado,
-            "EMP_Fotografia" => $empleado->EMP_Fotografia,
-            "EMP_Nombre" => $empleado->EMP_Nombre,
-            "DEP_DeptoId" => $empleado->DEP_DeptoId,
-            "DEP_Nombre" => $empleado->DEP_Nombre, 
-            "DEP_Codigo" => $empleado->DEP_Codigo
-        ]);
-    }
-    public function home()
-    {
-        $userdata = auth()->user();
-        $empleadoId = $userdata['USU_EMP_EmpleadoId'];
-        //$empleado = Empleados::find($empleadoId);
-        
            
         //USU_PER_PermisoId 
         $menu = DB::select("SELECT  mitn.MINVT_Nombre AS MPC_Nodo, MPC_NombreNodo FROM MenuPrincipalConfiguracion INNER JOIN (select PER_PermisoId, PER_TipoPermiso, PERD_MPC_NodoId
@@ -113,8 +98,14 @@ class ApiController extends Controller
         }
         return response()->json([
             "usuarioId" => $userdata['USU_UsuarioId'],
-            //"usuarioNombre" => $empleado->EMP_CodigoEmpleado . ' ' . $empleado->EMP_Nombre .' '. $empleado->EMP_PrimerApellido .' '. $empleado->EMP_SegundoApellido,
-            "usuarioMenu" => $menu_app
+            "usuarioMenu" => $menu_app,
+            "EMP_EmpleadoId" => $empleado->EMP_EmpleadoId,
+            "EMP_CodigoEmpleado" => $empleado->EMP_CodigoEmpleado,
+            "EMP_Fotografia" => $empleado->EMP_Fotografia,
+            "EMP_Nombre" => $empleado->EMP_Nombre,
+            "DEP_DeptoId" => $empleado->DEP_DeptoId,
+            "DEP_Nombre" => $empleado->DEP_Nombre,
+            "DEP_Codigo" => $empleado->DEP_Codigo
         ]);
     }
 
