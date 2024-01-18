@@ -31,4 +31,5 @@ Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers
 });
 Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\CapitalHumano'], function () {
     Route::any('permisos/tipos', 'PermisosController@permisosTipos');
+    Route::resource('permisos', 'PermisosController');
 });
