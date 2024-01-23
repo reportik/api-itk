@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\CapitalHumano\PermisosController;
 //Route::post("register", [ApiController::class, "register"]);
 Route::post("login", [ApiController::class, "login"]);
 
@@ -31,5 +32,6 @@ Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers
 });
 Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\CapitalHumano'], function () {
     Route::any('permisos/tipos', 'PermisosController@permisosTipos');
+    Route::any('send', 'PermisosController@send');
     Route::resource('permisos', 'PermisosController');
 });

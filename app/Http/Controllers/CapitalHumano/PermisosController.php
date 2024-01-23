@@ -4,17 +4,20 @@ namespace App\Http\Controllers\CapitalHumano;
 
 use DB;
 use App\Models\User;
-use App\Models\RPT\RPT_CHECADOR_INCIDENCIA AS CHI;
-use App\Models\RPT\RPT_CHECADOR_REPORTE as CHR;
-use App\Models\RPT\RPT_CHECADOR_ESTATUS as CHE;
-
 use App\Models\Empleados;
+use App\Models\UsuariosRPT;
 use Illuminate\Support\Arr;
-use Illuminate\Http\Request;
 
+use Illuminate\Http\Request;
+use App\Events\UserNotifyEvent;
 use Tymon\JWTAuth\Facades\JWTAuth;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Models\RPT\RPT_CHECADOR_ESTATUS as CHE;
+use App\Models\RPT\RPT_CHECADOR_REPORTE as CHR;
+use App\Http\Controllers\Sistema\DataBaseSession;
+use App\Models\RPT\RPT_CHECADOR_INCIDENCIA AS CHI;
 
 class PermisosController extends Controller
 {
@@ -37,6 +40,8 @@ class PermisosController extends Controller
             , CASE WHEN CHI.CHI_EstatusPermiso = 'A' THEN 'APROBADO'
             WHEN CHI.CHI_EstatusPermiso = 'E' THEN 'EN REVISION'
             WHEN CHI.CHI_EstatusPermiso = 'R' THEN 'RECHAZADO'
+            WHEN CHI.CHI_EstatusPermiso = 'S' THEN 'ENVIADO'
+            WHEN CHI.CHI_EstatusPermiso = 'D' THEN 'ARCHIVADO'
             WHEN CHI.CHI_EstatusPermiso = 'N' THEN 'NO APLICA' END
                 AS Estatus
             , CHI_Descripcion AS Descripcion
@@ -46,7 +51,7 @@ class PermisosController extends Controller
             FROM  RPT_Checador_Incidencias CHI 
             LEFT JOIN Empleados on 
                     RIGHT('000' + CONVERT(varchar, EMP_CodigoEmpleado), 4) = RIGHT('000' + CONVERT(varchar, CHI_EMP_Empleado), 4)
-            where CHI.CHI_Eliminado = 0 and EMP_CodigoEmpleado = ?
+            where CHI.CHI_EstatusPermiso <> 'D' AND CHI.CHI_Eliminado = 0 and EMP_CodigoEmpleado = ?
             AND EMP_CMM_TipoEmpleadoId <> 'E646B375-C7AD-494E-8F6B-8BDF540DBEEB'
             order by CHI_FechaCreacion desc", [$userdata['USU_Nombre']]);
         return response()->json([
@@ -64,13 +69,13 @@ class PermisosController extends Controller
      
         try {
             // data validation
-            // $request->validate([
-            //     "name" => "required",
-            //     "email" => "required|email|unique:users",
-            //     "password" => "required|confirmed"
-            // ]);
+            $request->validate([
+                "incidenciaId" => "required|numeric",
+                "fechaHoraInicio" => "required|date",
+                "fechaHoraTermino" => "required|date",
+                "descripcion" => "required"
+            ]);
 
-            // 
             $incidencia = $_POST['incidenciaId'];
             $fi = ($_POST['fechaHoraInicio']);
             $ft = ($_POST['fechaHoraTermino']);
@@ -85,7 +90,7 @@ class PermisosController extends Controller
             $fila->CHI_FechaInicio = $fi;
             $fila->CHI_FechaTermino = $ft;
             $fila->CHI_Descripcion = strtoupper($descripcion);
-            $fila->CHI_EstatusPermiso = 'E'; //[APROBADO, EN REVISION, RECHAZADO, NO APLICA]
+            $fila->CHI_EstatusPermiso = 'S'; //[APROBADO A, EN REVISION E, RECHAZADO R, NO APLICA N, ENVIADO S, ARCHIVADO D]
             $fila->CHI_CreadoPor = $userdata['USU_Nombre'];
             $fila->CHI_FechaCreacion = date('d-m-Y H:i:s');
             $fila->CHI_Eliminado = 0;
@@ -93,7 +98,7 @@ class PermisosController extends Controller
 
             return response()->json([
                 "status" => true,
-                "message" => "Registro Guardado"
+                "message" => "Permiso Guardado"
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Ocurrió un error al realizar el proceso. Error: ' . $e->getMessage() . ". Linea: " . $e->getLine()], 400);
@@ -130,7 +135,36 @@ class PermisosController extends Controller
      */
     public function update($id)
     {
-        //
+        try {
+
+            $incidencia = $_POST['incidenciaId'];
+            $fi = ($_POST['fechaHoraInicio']);
+            $ft = ($_POST['fechaHoraTermino']);
+            $descripcion = $_POST['descripcion'];
+
+            //$userdata = auth()->user();
+
+            $fila = CHI::find($id); //CHI_Id
+
+            if ($fila->CHI_EstatusPermiso == 'S') {
+                $fila->CHI_CHE_Id = $incidencia;
+                $fila->CHI_FechaInicio = $fi;
+                $fila->CHI_FechaTermino = $ft;
+                $fila->CHI_Descripcion = strtoupper($descripcion);
+                $fila->CHI_FechaCreacion = date('d-m-Y H:i:s');
+                $fila->save();
+                return response()->json([
+                    "status" => true,
+                    "message" => "Permiso Guardado"
+                ]);
+            } else {
+                return response()->json(['error' => "Este Permiso ya no se puede modificar."], 400);
+            }
+
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Ocurrió un error al realizar el proceso. Error: ' . $e->getMessage() . ". Linea: " . $e->getLine()], 400);
+        }
     }
 
     /**
@@ -141,7 +175,43 @@ class PermisosController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $fila = CHI::find($id); //CHI_Id
+        $fila->CHI_EstatusPermiso = 'D';
+        $fila->CHI_Eliminado = 1;
+        $fila->save();
+        return response()->json([
+            "status" => true,
+            "message" => "exito"
+        ]);
     }
+   
+   
+    public function send()
+    {
+        //dd(\Carbon\Carbon::now());
+        $user = UsuariosRPT::where('nomina', '913')->first();
+        $userdata = auth()->user();
+        $empleadoId = $userdata['USU_EMP_EmpleadoId'];
+        //$empleadoId = DataBaseSession::getEmpleadoId();
+        $empleado = Empleados::find($empleadoId);
+        //dd($empleado, $empleadoId);
+        $details = [
+            'body' => 'Proveedores Invtek.',
+            'foto' => (is_null($empleado->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleado->EMP_Fotografia,
+            'action' => url('#compras/Proveedor')
+        ];
+
+        //Notification::send($user, new RPT_Notification($details));
+        $user->storeNewNotification($details);
+        $userId = $user->id;
+        //falta pasarle el details para agregar la notifiacion en la vista
+        event(new UserNotifyEvent($userId, "Tiene una nueva Notificación"));
+        return response()->json([
+            "status" => true,
+            "message" => "Notificado"
+        ]);
+    }
+
+    
 
 }
