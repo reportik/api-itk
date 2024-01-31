@@ -38,9 +38,9 @@ class PermisosController extends Controller
         $permisos = DB::select("SELECT CHI_Id AS Id
             , CONVERT(varchar, CHI_FechaCreacion,120) CHI_FechaCreacion
             , CASE WHEN CHI.CHI_EstatusPermiso = 'A' THEN 'APROBADO'
+            WHEN CHI.CHI_EstatusPermiso = 'S' THEN 'ENVIADO'
             WHEN CHI.CHI_EstatusPermiso = 'E' THEN 'EN REVISION'
             WHEN CHI.CHI_EstatusPermiso = 'R' THEN 'RECHAZADO'
-            WHEN CHI.CHI_EstatusPermiso = 'S' THEN 'ENVIADO'
             WHEN CHI.CHI_EstatusPermiso = 'D' THEN 'ARCHIVADO'
             WHEN CHI.CHI_EstatusPermiso = 'N' THEN 'NO APLICA' END
                 AS Estatus
@@ -133,10 +133,11 @@ class PermisosController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function update($id)
+    public function update()
     {
         try {
 
+            $id = $_POST['id'];
             $incidencia = $_POST['incidenciaId'];
             $fi = ($_POST['fechaHoraInicio']);
             $ft = ($_POST['fechaHoraTermino']);
@@ -173,16 +174,22 @@ class PermisosController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function destroy($id)
+    public function destroy()
     {
+        $id = $_POST['id'];
         $fila = CHI::find($id); //CHI_Id
-        $fila->CHI_EstatusPermiso = 'D';
-        $fila->CHI_Eliminado = 1;
-        $fila->save();
-        return response()->json([
-            "status" => true,
-            "message" => "exito"
-        ]);
+
+        if ($fila->CHI_EstatusPermiso == 'A' || $fila->CHI_EstatusPermiso == 'R') {
+            $fila->CHI_EstatusPermiso = 'D';
+            $fila->CHI_Eliminado = 1;
+            $fila->save();
+            return response()->json([
+                "status" => true,
+                "message" => "exito"
+            ]);
+        } else {
+            return response()->json(['error' => "Este Permiso no se puede archivar, por que no esta RECHAZADO o APROBADO."], 400);
+        }
     }
    
    

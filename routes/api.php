@@ -34,4 +34,6 @@ Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'names
     Route::any('permisos/tipos', 'PermisosController@permisosTipos');
     Route::any('send', 'PermisosController@send');
     Route::resource('permisos', 'PermisosController');
+    Route::post('permisos-delete', 'PermisosController@destroy');
+    Route::post('permisos-update', 'PermisosController@update');
 });
