@@ -44,13 +44,17 @@ class PermisosController extends Controller
             WHEN CHI.CHI_EstatusPermiso = 'D' THEN 'ARCHIVADO'
             WHEN CHI.CHI_EstatusPermiso = 'N' THEN 'NO APLICA' END
                 AS Estatus
+            , CHI_EstatusPermiso EstatusId
             , CHI_Descripcion AS Descripcion
             , CONVERT(varchar, CHI_FechaInicio,120) CHI_FechaInicio
             , CONVERT(varchar, CHI_FechaTermino,120) CHI_FechaTermino
+            , CHI_CHE_Id PermisoId
+            , CHE_Estatus PermisoDescripcion 
             , CHI_Eliminado
             FROM  RPT_Checador_Incidencias CHI 
             LEFT JOIN Empleados on 
                     RIGHT('000' + CONVERT(varchar, EMP_CodigoEmpleado), 4) = RIGHT('000' + CONVERT(varchar, CHI_EMP_Empleado), 4)
+            INNER JOIN RPT_Checador_ConfigEstatus CHE on CHE.CHE_Id = CHI_CHE_Id
             where CHI.CHI_EstatusPermiso <> 'D' AND CHI.CHI_Eliminado = 0 and EMP_CodigoEmpleado = ?
             AND EMP_CMM_TipoEmpleadoId <> 'E646B375-C7AD-494E-8F6B-8BDF540DBEEB'
             order by CHI_FechaCreacion desc", [$userdata['USU_Nombre']]);
@@ -113,7 +117,35 @@ class PermisosController extends Controller
      */
     public function show($id)
     {
-        //
+        $userdata = auth()->user();
+        // get all
+        $permiso = DB::select("SELECT CHI_Id AS Id
+            , CONVERT(varchar, CHI_FechaCreacion,120) CHI_FechaCreacion
+            , CASE WHEN CHI.CHI_EstatusPermiso = 'A' THEN 'APROBADO'
+            WHEN CHI.CHI_EstatusPermiso = 'S' THEN 'ENVIADO'
+            WHEN CHI.CHI_EstatusPermiso = 'E' THEN 'EN REVISION'
+            WHEN CHI.CHI_EstatusPermiso = 'R' THEN 'RECHAZADO'
+            WHEN CHI.CHI_EstatusPermiso = 'D' THEN 'ARCHIVADO'
+            WHEN CHI.CHI_EstatusPermiso = 'N' THEN 'NO APLICA' END
+                AS Estatus
+            , CHI_EstatusPermiso EstatusId
+            , CHI_Descripcion AS Descripcion
+            , CONVERT(varchar, CHI_FechaInicio,120) CHI_FechaInicio
+            , CONVERT(varchar, CHI_FechaTermino,120) CHI_FechaTermino
+            , CHI_CHE_Id PermisoId
+            , CHE_Estatus PermisoDescripcion 
+            , CHI_Eliminado
+            FROM  RPT_Checador_Incidencias CHI 
+            LEFT JOIN Empleados on 
+                    RIGHT('000' + CONVERT(varchar, EMP_CodigoEmpleado), 4) = RIGHT('000' + CONVERT(varchar, CHI_EMP_Empleado), 4)
+            INNER JOIN RPT_Checador_ConfigEstatus CHE on CHE.CHE_Id = CHI_CHE_Id
+            where CHI.CHI_EstatusPermiso <> 'D' AND CHI.CHI_Eliminado = 0 and EMP_CodigoEmpleado = ?
+            AND CHI_Id = ?
+            AND EMP_CMM_TipoEmpleadoId <> 'E646B375-C7AD-494E-8F6B-8BDF540DBEEB'
+            order by CHI_FechaCreacion desc", [$userdata['USU_Nombre'], $id]);
+        return response()->json([
+            "permiso" => $permiso
+        ]);
     }
 
     /**
@@ -124,7 +156,7 @@ class PermisosController extends Controller
      */
     public function edit($id)
     {
-        //
+        
     }
 
     /**
