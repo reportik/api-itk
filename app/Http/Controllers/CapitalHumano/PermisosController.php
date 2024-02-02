@@ -75,8 +75,8 @@ class PermisosController extends Controller
             // data validation
             $request->validate([
                 "incidenciaId" => "required|numeric",
-                "fechaHoraInicio" => "required|date",
-                "fechaHoraTermino" => "required|date",
+                "fechaHoraInicio" => "required",
+                "fechaHoraTermino" => "required",
                 "descripcion" => "required"
             ]);
 
