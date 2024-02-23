@@ -68,17 +68,10 @@ class PermisosController extends Controller
      *
      * @return Response
      */
-    public function store(Request $request)
+    public function store()
     {
      
         try {
-            // data validation
-            $request->validate([
-                "incidenciaId" => "required|numeric",
-                "fechaHoraInicio" => "required",
-                "fechaHoraTermino" => "required",
-                "descripcion" => "required"
-            ]);
 
             $incidencia = $_POST['incidenciaId'];
             $fi = ($_POST['fechaHoraInicio']);
@@ -212,7 +205,7 @@ class PermisosController extends Controller
         $fila = CHI::find($id); //CHI_Id
 
         if ($fila->CHI_EstatusPermiso == 'A' || $fila->CHI_EstatusPermiso == 'R') {
-            $fila->CHI_EstatusPermiso = 'D';
+            //$fila->CHI_EstatusPermiso = 'D';
             $fila->CHI_Eliminado = 1;
             $fila->save();
             return response()->json([
