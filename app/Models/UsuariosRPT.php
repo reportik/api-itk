@@ -3,7 +3,7 @@
 use Illuminate\Notifications\DatabaseNotification;
 use App\Http\Controllers\Sistema\DAOGeneralController;
 use Illuminate\Database\Eloquent\Model;
-
+use Carbon\Carbon;
 class UsuariosRPT extends Model {
 
     protected $table = 'RPT_Usuarios';
@@ -24,6 +24,8 @@ class UsuariosRPT extends Model {
         date_default_timezone_set('America/Mexico_City');
         $dao = new DAOGeneralController();
         $databaseNotification = new DatabaseNotification();
+        $databaseNotification->created_at = Carbon::now();
+        $databaseNotification->updated_at = Carbon::now();
         $databaseNotification->id = $dao->nuevoId();
         $databaseNotification->notifiable_id = $this->id;
         $databaseNotification->notifiable_type = 'Muliix\User';
