@@ -24,8 +24,8 @@ class UsuariosRPT extends Model {
         date_default_timezone_set('America/Mexico_City');
         $dao = new DAOGeneralController();
         $databaseNotification = new DatabaseNotification();
-        $databaseNotification->created_at = Carbon::now();
-        $databaseNotification->updated_at = Carbon::now();
+        $databaseNotification->created_at = Carbon::now()->toDateTimeString();
+        $databaseNotification->updated_at = Carbon::now()->toDateTimeString();
         $databaseNotification->id = $dao->nuevoId();
         $databaseNotification->notifiable_id = $this->id;
         $databaseNotification->notifiable_type = 'Muliix\User';
