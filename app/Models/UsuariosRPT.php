@@ -1,6 +1,6 @@
 <?php namespace App\Models;
 
-use Illuminate\Notifications\DatabaseNotification;
+use Muliix\Models\DatabaseNotification;
 use App\Http\Controllers\Sistema\DAOGeneralController;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
