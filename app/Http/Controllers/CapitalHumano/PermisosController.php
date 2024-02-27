@@ -228,16 +228,17 @@ class PermisosController extends Controller
         $empleado = Empleados::find($empleadoId);
         //dd($empleado, $empleadoId);
         $details = [
-            'body' => 'Proveedores Invtek.',
+            'body' => 'Nuevo Permiso. ('. $empleado->EMP_Nombre.' '. $empleado->EMP_PrimerApellido.')',
             'foto' => (is_null($empleado->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleado->EMP_Fotografia,
-            'action' => url('#compras/Proveedor')
+            'action' => url('#capital-humano/permisos'),
+            'EmpId' => $empleado->EMP_EmpleadoId
         ];
 
         //Notification::send($user, new RPT_Notification($details));
         $user->storeNewNotification($details);
         $userId = $user->id;
         //falta pasarle el details para agregar la notifiacion en la vista
-        event(new UserNotifyEvent($userId, "Tiene una nueva Notificación"));
+        event(new UserNotifyEvent($userId, $details));
         return response()->json([
             "status" => true,
             "message" => "Notificado"

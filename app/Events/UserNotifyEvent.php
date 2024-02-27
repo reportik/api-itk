@@ -12,16 +12,16 @@ class UserNotifyEvent extends Event implements ShouldBroadcast
     use SerializesModels;
 
     public $user;
-    public $mensaje;
+    public $details;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($user, $mensaje)
+    public function __construct($user, $details)
     {
         $this->user = $user;
-        $this->mensaje = $mensaje;
+        $this->details = $details;
     }
 
     /**
