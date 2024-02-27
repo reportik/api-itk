@@ -228,10 +228,12 @@ class PermisosController extends Controller
         $empleado = Empleados::find($empleadoId);
         //dd($empleado, $empleadoId);
         $details = [
-            'body' => 'Nuevo Permiso. ('. $empleado->EMP_Nombre.' '. $empleado->EMP_PrimerApellido.')',
+
+            'title' => 'Nuevo Permiso. ('. $empleado->EMP_Nombre.' '. $empleado->EMP_PrimerApellido.')',
+            'body' => '¿Desea revisar el permiso ahora?',
+            'type' => 'alert',
             'foto' => (is_null($empleado->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleado->EMP_Fotografia,
-            'action' => url('#capital-humano/permisos'),
-            'EmpId' => $empleado->EMP_EmpleadoId
+            'action' => url('#capital-humano/permisos/'. $empleado->EMP_EmpleadoId)
         ];
 
         //Notification::send($user, new RPT_Notification($details));
