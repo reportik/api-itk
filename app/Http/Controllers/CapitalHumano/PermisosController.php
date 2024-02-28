@@ -92,7 +92,7 @@ class PermisosController extends Controller
             $fila->CHI_FechaCreacion = date('d-m-Y H:i:s');
             $fila->CHI_Eliminado = 0;
             $fila->save();
-
+            self::sendAlert();
             return response()->json([
                 "status" => true,
                 "message" => "Permiso Guardado"
@@ -218,7 +218,7 @@ class PermisosController extends Controller
     }
    
    
-    public function send()
+    public function sendAlert()
     {
         //dd(\Carbon\Carbon::now());
         $user = UsuariosRPT::where('nomina', '913')->first();
