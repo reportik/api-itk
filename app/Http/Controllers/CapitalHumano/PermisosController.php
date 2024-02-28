@@ -232,8 +232,8 @@ class PermisosController extends Controller
     public function sendAlert($nomina, $empleado)
     {
         
-        //$user = UsuariosRPT::where('nomina', '913')->first();
-        $user = UsuariosRPT::where('nomina', $nomina)->first();
+        $user = UsuariosRPT::where('nomina', '913')->first();
+        //$user = UsuariosRPT::where('nomina', $nomina)->first();
         
         $details = [
 
