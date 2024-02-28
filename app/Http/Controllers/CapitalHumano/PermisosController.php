@@ -92,7 +92,18 @@ class PermisosController extends Controller
             $fila->CHI_FechaCreacion = date('d-m-Y H:i:s');
             $fila->CHI_Eliminado = 0;
             $fila->save();
-            self::sendAlert();
+            $rh_empleados = DB::select("select PER_PermisoId, PER_TipoPermiso, 
+                Usuarios.USU_EMP_EmpleadoId, Usuarios.USU_Nombre
+                from Permisos 
+                inner join Usuarios on USU_PER_PermisoId=PER_PermisoId 
+                WHERE PER_PermisoId ='a129d92c-2ba1-4fdf-95d6-17ad189a7a13'");
+            //$userdata = auth()->user();
+            $empleadoId = $userdata['USU_EMP_EmpleadoId'];
+            //$empleadoId = DataBaseSession::getEmpleadoId();
+            $empleado = Empleados::find($empleadoId);
+            foreach ($rh_empleados as $key => $value) {                
+                self::sendAlert($value->USU_Nombre, $empleado);
+            }
             return response()->json([
                 "status" => true,
                 "message" => "Permiso Guardado"
@@ -218,15 +229,12 @@ class PermisosController extends Controller
     }
    
    
-    public function sendAlert()
+    public function sendAlert($nomina, $empleado)
     {
-        //dd(\Carbon\Carbon::now());
-        $user = UsuariosRPT::where('nomina', '913')->first();
-        $userdata = auth()->user();
-        $empleadoId = $userdata['USU_EMP_EmpleadoId'];
-        //$empleadoId = DataBaseSession::getEmpleadoId();
-        $empleado = Empleados::find($empleadoId);
-        //dd($empleado, $empleadoId);
+        
+        //$user = UsuariosRPT::where('nomina', '913')->first();
+        $user = UsuariosRPT::where('nomina', $nomina)->first();
+        
         $details = [
 
             'title' => 'Nuevo Permiso. ('. $empleado->EMP_Nombre.' '. $empleado->EMP_PrimerApellido.')',
