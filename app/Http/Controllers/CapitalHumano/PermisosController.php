@@ -107,7 +107,7 @@ class PermisosController extends Controller
             $tituloMensaje = 'Nuevo Permiso Folio #' . $fila->CHI_Id . '. (' . $empleadoRemitente->EMP_Nombre . ' ' . $empleadoRemitente->EMP_PrimerApellido . ')';
             $cuerpoMensaje = '¿Desea revisar el permiso ahora?';
             $fotoMensaje = (is_null($empleadoRemitente->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
-            $accionMensaje = '#capital-humano/permisos/' . $empleadoRemitente->EMP_EmpleadoId;
+            $accionMensaje = url('#capital-humano/permisos/' . $empleadoRemitente->EMP_EmpleadoId);
 
             foreach ($rh_empleados as $key => $value) {
                 self::sendAlert($value->USU_Nombre , $tituloMensaje, $cuerpoMensaje, 'alert', $fotoMensaje, $accionMensaje);
@@ -248,7 +248,7 @@ class PermisosController extends Controller
             'body' => $cuerpoMensaje,
             'type' => $tipoMensaje,
             'foto' => $fotoMensaje,
-            'action' => url($accionMensaje)
+            'action' => $accionMensaje
         ];
         //Notification::send($user, new RPT_Notification($details));
         $user->storeNewNotification($details);
