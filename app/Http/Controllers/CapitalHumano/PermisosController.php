@@ -49,7 +49,8 @@ class PermisosController extends Controller
             , CONVERT(varchar, CHI_FechaInicio,120) CHI_FechaInicio
             , CONVERT(varchar, CHI_FechaTermino,120) CHI_FechaTermino
             , CHI_CHE_Id PermisoId
-            , CHE_Estatus PermisoDescripcion 
+            , CHE_Estatus PermisoDescripcion
+            , CHI_Nota
             , CHI_Eliminado
             FROM  RPT_Checador_Incidencias CHI 
             LEFT JOIN Empleados on 
@@ -92,17 +93,24 @@ class PermisosController extends Controller
             $fila->CHI_FechaCreacion = date('d-m-Y H:i:s');
             $fila->CHI_Eliminado = 0;
             $fila->save();
+
             $rh_empleados = DB::select("select PER_PermisoId, PER_TipoPermiso, 
                 Usuarios.USU_EMP_EmpleadoId, Usuarios.USU_Nombre
                 from Permisos 
                 inner join Usuarios on USU_PER_PermisoId=PER_PermisoId 
                 WHERE PER_PermisoId ='a129d92c-2ba1-4fdf-95d6-17ad189a7a13'");
-            //$userdata = auth()->user();
+
             $empleadoId = $userdata['USU_EMP_EmpleadoId'];
             //$empleadoId = DataBaseSession::getEmpleadoId();
-            $empleado = Empleados::find($empleadoId);
-            foreach ($rh_empleados as $key => $value) {                
-                self::sendAlert($value->USU_Nombre, $empleado);
+            $empleadoRemitente = Empleados::find($empleadoId);
+
+            $tituloMensaje = 'Nuevo Permiso Folio #' . $fila->CHI_Id . '. (' . $empleadoRemitente->EMP_Nombre . ' ' . $empleadoRemitente->EMP_PrimerApellido . ')';
+            $cuerpoMensaje = '¿Desea revisar el permiso ahora?';
+            $fotoMensaje = (is_null($empleadoRemitente->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
+            $accionMensaje = '#capital-humano/permisos/' . $empleadoRemitente->EMP_EmpleadoId;
+
+            foreach ($rh_empleados as $key => $value) {
+                self::sendAlert($value->USU_Nombre , $tituloMensaje, $cuerpoMensaje, 'alert', $fotoMensaje, $accionMensaje);
             }
             return response()->json([
                 "status" => true,
@@ -138,6 +146,7 @@ class PermisosController extends Controller
             , CONVERT(varchar, CHI_FechaTermino,120) CHI_FechaTermino
             , CHI_CHE_Id PermisoId
             , CHE_Estatus PermisoDescripcion 
+            , CHI_Nota
             , CHI_Eliminado
             FROM  RPT_Checador_Incidencias CHI 
             LEFT JOIN Empleados on 
@@ -229,25 +238,21 @@ class PermisosController extends Controller
     }
    
    
-    public function sendAlert($nomina, $empleado)
+    public function sendAlert($codigoEmpDestinatario, $tituloMensaje, $cuerpoMensaje, $tipoMensaje, $fotoMensaje, $accionMensaje)
     {
-        
-        $user = UsuariosRPT::where('nomina', '913')->first();
-        //$user = UsuariosRPT::where('nomina', $nomina)->first();
-        
+        //$user = UsuariosRPT::where('nomina', '913')->first();
+        $user = UsuariosRPT::where('nomina', $codigoEmpDestinatario)->first();
         $details = [
 
-            'title' => 'Nuevo Permiso. ('. $empleado->EMP_Nombre.' '. $empleado->EMP_PrimerApellido.')',
-            'body' => '¿Desea revisar el permiso ahora?',
-            'type' => 'alert',
-            'foto' => (is_null($empleado->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleado->EMP_Fotografia,
-            'action' => url('#capital-humano/permisos/'. $empleado->EMP_EmpleadoId)
+            'title' =>  $tituloMensaje,
+            'body' => $cuerpoMensaje,
+            'type' => $tipoMensaje,
+            'foto' => $fotoMensaje,
+            'action' => url($accionMensaje)
         ];
-
         //Notification::send($user, new RPT_Notification($details));
         $user->storeNewNotification($details);
         $userId = $user->id;
-        //falta pasarle el details para agregar la notifiacion en la vista
         event(new UserNotifyEvent($userId, $details));
         return response()->json([
             "status" => true,
