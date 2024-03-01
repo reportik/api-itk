@@ -260,6 +260,33 @@ class PermisosController extends Controller
         ]);
     }
 
+    public function sendNotification()
+    {
+        //dd(\Carbon\Carbon::now());
+        //$user = User::where('nomina', '913')->first();
+        // $empleadoId = DataBaseSession::getEmpleadoId();
+        // $empleado = Empleados::find($empleadoId);
+        // //dd($empleado, $empleadoId);
+        $details = [
+            'title' => 'Proveedores incompletos.',
+            'body' => 'Proveedores incompletos.',
+            'foto' =>  'SIN FOTO.png',
+            'action' => url('#compras/Proveedor'),
+            'type' => 'toast'
+        ];
+
+        // //Notification::send($user, new RPT_Notification($details));
+        // $user->storeNewNotification($details);
+
+        //$notifications = $user->unreadNotifications;
+        //$userId = $user->id;
+        //falta pasarle el details para agregar la notifiacion en la vista
+        event(new UserNotifyEvent('34', $details));
+        return response()->json([
+            "status" => true,
+            "message" => "Permiso Guardado"
+        ]);
+    }
     
 
 }
