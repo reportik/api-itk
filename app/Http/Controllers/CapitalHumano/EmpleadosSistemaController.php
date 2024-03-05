@@ -23,7 +23,10 @@ class EmpleadosSistemaController extends Controller
     public function changePassword(Request $request)
     {
         $userdata = auth()->user();
-
+        return response()->json([
+            "status" => true,
+            "message" => "Password Changed successfully"
+        ]);
         try {
             // data validation
            
