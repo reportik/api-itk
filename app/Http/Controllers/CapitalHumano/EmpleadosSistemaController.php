@@ -26,9 +26,7 @@ class EmpleadosSistemaController extends Controller
 
         try {
             // data validation
-            $request->validate([
-                'password' => 'required|confirmed'
-            ]);
+           
 
             $userdata = auth()->user();
             $empleadoId = $userdata['USU_EMP_EmpleadoId'];
