@@ -35,11 +35,12 @@ class EmpleadosSistemaController extends Controller
 
             $password = $_POST['password'];
 
-            $user = \DB::table('Usuarios')
+            $usuarios = DB::table('Usuarios')
                 ->join('Empleados', 'EMP_EmpleadoId', '=', 'USU_EMP_EmpleadoId')              
                 ->where('USU_EMP_EmpleadoId', '=', $empleadoId)
                 ->get();
-
+            $user = $usuarios[0];
+            DB::beginTransaction();
             DB::table('Usuarios')
                 ->where('USU_Nombre', $user->USU_Nombre)
                 ->update(['USU_Contrasenia' => $password]);
@@ -49,8 +50,9 @@ class EmpleadosSistemaController extends Controller
             DB::table('RPT_Usuarios')
                 ->where('nomina', $user->USU_Nombre)
                 ->update(['password' => $password]);
-
+            DB::commit();
         } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage()], 401);
            
         }
