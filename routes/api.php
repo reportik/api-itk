@@ -36,4 +36,6 @@ Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'names
     Route::resource('permisos', 'PermisosController');
     Route::post('permisos-delete', 'PermisosController@destroy');
     Route::post('permisos-update', 'PermisosController@update');
+    
+    Route::post('change-password', 'EmpleadosSistemaController@changePassword');
 });

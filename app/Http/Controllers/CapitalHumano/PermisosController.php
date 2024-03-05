@@ -224,7 +224,7 @@ class PermisosController extends Controller
         $id = $_POST['id'];
         $fila = CHI::find($id); //CHI_Id
 
-        if ($fila->CHI_EstatusPermiso == 'A' || $fila->CHI_EstatusPermiso == 'R') {
+        if ($fila->CHI_EstatusPermiso == 'A' || $fila->CHI_EstatusPermiso == 'R' || $fila->CHI_EstatusPermiso == 'S') {
             //$fila->CHI_EstatusPermiso = 'D';
             $fila->CHI_Eliminado = 1;
             $fila->save();
@@ -233,7 +233,7 @@ class PermisosController extends Controller
                 "message" => "exito"
             ]);
         } else {
-            return response()->json(['error' => "Este Permiso no se puede archivar, por que no esta RECHAZADO o APROBADO."], 400);
+            return response()->json(['error' => "Este Permiso no se puede archivar"], 400);
         }
     }
    
