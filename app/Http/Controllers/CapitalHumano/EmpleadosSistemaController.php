@@ -9,13 +9,13 @@ use App\Models\UsuariosRPT;
 use Illuminate\Support\Arr;
 
 use Illuminate\Http\Request;
+
 use App\Events\UserNotifyEvent;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Sistema\DataBaseSession;
-use App\Models\RPT\RPT_CHECADOR_INCIDENCIA AS CHI;
 
 class EmpleadosSistemaController extends Controller
 {
@@ -23,13 +23,12 @@ class EmpleadosSistemaController extends Controller
     public function changePassword(Request $request)
     {
         $userdata = auth()->user();
-        return response()->json([
-            "status" => true,
-            "message" => "Password Changed successfully"
-        ]);
+
         try {
             // data validation
-           
+            $request->validate([
+                'password' => 'required|confirmed'
+            ]);
 
             $userdata = auth()->user();
             $empleadoId = $userdata['USU_EMP_EmpleadoId'];
@@ -52,7 +51,8 @@ class EmpleadosSistemaController extends Controller
                 ->update(['password' => $password]);
 
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(array('msg' => $e->getMessage()));
+            return response()->json(['error' => $e->getMessage()], 401);
+           
         }
 
         return response()->json([
