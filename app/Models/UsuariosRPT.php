@@ -1,9 +1,10 @@
 <?php namespace App\Models;
 
-use App\Models\DatabaseNotification;
-use App\Http\Controllers\Sistema\DAOGeneralController;
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use App\Models\DatabaseNotification;
+use Illuminate\Database\Eloquent\Model;
+use App\Http\Controllers\Sistema\DAOGeneralController;
+use Google\Client AS Google_Client;
 class UsuariosRPT extends Model {
 
     protected $table = 'RPT_Usuarios';
@@ -37,11 +38,9 @@ class UsuariosRPT extends Model {
     {
         $fcm = FCM_Tokens::where('RPT_Usuario_Id', $this->id)->where('Aplicativo', $aplicativo)->first();
         try {
-            //code...
-       
-        
         $credentialsFilePath = public_path('service_account.json');
-        $client = new \Google_Client();
+        $client = new Google_Client();
+        
         $client->setAuthConfig($credentialsFilePath);
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
         $apiurl = 'https://fcm.googleapis.com/v1/projects/<PROJECT_ID>/messages:send';
