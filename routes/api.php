@@ -32,7 +32,7 @@ Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers
 });
 Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\CapitalHumano'], function () {
     Route::any('permisos/tipos', 'PermisosController@permisosTipos');
-    Route::any('send', 'PermisosController@send');
+    Route::any('send', 'PermisosController@sendNotification');
     Route::resource('permisos', 'PermisosController');
     Route::post('permisos-delete', 'PermisosController@destroy');
     Route::post('permisos-update', 'PermisosController@update');

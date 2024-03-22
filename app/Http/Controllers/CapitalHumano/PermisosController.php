@@ -263,7 +263,7 @@ class PermisosController extends Controller
     public function sendNotification()
     {
         //dd(\Carbon\Carbon::now());
-        //$user = User::where('nomina', '913')->first();
+        $user = UsuariosRPT::where('nomina', '913')->first();
         // $empleadoId = DataBaseSession::getEmpleadoId();
         // $empleado = Empleados::find($empleadoId);
         // //dd($empleado, $empleadoId);
@@ -281,7 +281,8 @@ class PermisosController extends Controller
         //$notifications = $user->unreadNotifications;
         //$userId = $user->id;
         //falta pasarle el details para agregar la notifiacion en la vista
-        event(new UserNotifyEvent('34', $details));
+        return $user->fcmNotification('web', $details);
+        //event(new UserNotifyEvent('34', $details));
         return response()->json([
             "status" => true,
             "message" => "Permiso Guardado"
