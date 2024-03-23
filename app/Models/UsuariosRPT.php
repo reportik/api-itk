@@ -6,12 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use App\Http\Controllers\Sistema\DAOGeneralController;
 use App\Notifications\PNotification;
-
+use App\Models\FCM_Tokens;
 class UsuariosRPT extends Model {
     use Notifiable;
     protected $table = 'RPT_Usuarios';
     protected $primaryKey = 'id';
+    protected $fcmAplicativo = 'mi-nomina';
     public $timestamps = false;
+
+    public function setFmcAplicativo($fcmAplicativo)
+    {
+        $this->fcmAplicativo = $fcmAplicativo;
+    }
 
     public function getFoto()
     {
@@ -38,7 +44,8 @@ class UsuariosRPT extends Model {
     }
     public function fcmNotification($aplicativo, $details)
     {
-        return $this->notify(new PNotification);
+        $this->fcmAplicativo = $aplicativo;
+        return $this->notify(new PNotification($details));
 
     }
 
@@ -52,7 +59,9 @@ class UsuariosRPT extends Model {
     
     public function routeNotificationForFCM($notification)//: string|array|null
     {
-        return $this->fcm_token;
+        $fcm = FCM_Tokens::where('RPT_Usuario_Id', $this->id)->where('Aplicativo', $this->fcmAplicativo)->first();
+        return $fcm->fcm_token;
+        //return $this->fcm_token;
         // return $this->deviceTokens->pluck('fcm_token')->toArray();
     }
     

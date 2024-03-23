@@ -268,8 +268,8 @@ class PermisosController extends Controller
         // $empleado = Empleados::find($empleadoId);
         // //dd($empleado, $empleadoId);
         $details = [
-            'title' => 'Proveedores incompletos.',
-            'body' => 'Proveedores incompletos.',
+            'title' => 'Esto viene de Invtek.',
+            'body' => 'Pruebas desde Invtek',
             'foto' =>  'SIN FOTO.png',
             'action' => url('#compras/Proveedor'),
             'type' => 'toast'

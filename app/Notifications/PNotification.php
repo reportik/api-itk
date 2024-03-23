@@ -12,6 +12,12 @@ class PNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    protected $details = [];
+
+    public function __construct( $details)
+    {
+        $this->details = $details;
+    }
     public function via($notifiable): array
     {
         return [FCMChannel::class];
@@ -22,11 +28,9 @@ class PNotification extends Notification implements ShouldQueue
         return CloudMessage::new()
             ->withDefaultSounds()
             ->withNotification([
-                'title' => 'Order shipped',
-                'body' => 'Your order for laptop is shipped.',
+                'title' => $this->details['title'],
+                'body' => $this->details['body'],
             ])
-            ->withData([
-                'orderId' => '#123'
-            ]);
+            ->withData($this->details);
     }
 }
