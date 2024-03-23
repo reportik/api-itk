@@ -283,7 +283,7 @@ class PermisosController extends Controller
         //falta pasarle el details para agregar la notifiacion en la vista
         //$res = $user->routeNotificationForFCM('web');
         //$res = $user->setFmcAplicativo('web');
-        return $user->fcmNotification('web', $details);
+        return $user->fcmNotification($details);
         //event(new UserNotifyEvent('34', $details));
         return response()->json([
             "status" => true,

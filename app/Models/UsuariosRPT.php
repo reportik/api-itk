@@ -7,6 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Http\Controllers\Sistema\DAOGeneralController;
 use App\Notifications\PNotification;
 use App\Models\FCM_Tokens;
+
 class UsuariosRPT extends Model {
     use Notifiable;
     protected $table = 'RPT_Usuarios';
@@ -44,7 +45,7 @@ class UsuariosRPT extends Model {
         $databaseNotification->data = collect($details);
         $databaseNotification->save();
     }
-    public function fcmNotification($aplicativo, $details)
+    public function fcmNotification($details)
     {
         //$this->fcmAplicativo = $aplicativo;
         return $this->notify(new PNotification($details));
