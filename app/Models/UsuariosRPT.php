@@ -3,10 +3,12 @@
 use Carbon\Carbon;
 use App\Models\DatabaseNotification;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 use App\Http\Controllers\Sistema\DAOGeneralController;
-use Google\Client AS Google_Client;
-class UsuariosRPT extends Model {
+use App\Notifications\PNotification;
 
+class UsuariosRPT extends Model {
+    use Notifiable;
     protected $table = 'RPT_Usuarios';
     protected $primaryKey = 'id';
     public $timestamps = false;
@@ -36,57 +38,41 @@ class UsuariosRPT extends Model {
     }
     public function fcmNotification($aplicativo, $details)
     {
-        $fcm = FCM_Tokens::where('RPT_Usuario_Id', $this->id)->where('Aplicativo', $aplicativo)->first();
-        try {
-        $credentialsFilePath = public_path('service_account.json');
-        $client = new Google_Client();
-        $client->setAuthConfig($credentialsFilePath);
-        $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-        $apiurl = 'https://fcm.googleapis.com/v1/projects/mi-nomina-iteknia/messages:send';
-        $client->refreshTokenWithAssertion();
-        $token = $client->getAccessToken();
-        $access_token = $token['access_token'];
-        
-        $headers = [
-            "Authorization: Bearer". $access_token,
-            "Content-Type: application/json"
-        ];
-        $test_data = [
-            "title" => "TITLE_HERE",
-            "description" => "DESCRIPTION_HERE",
-        ];
-        
-        $data['data'] =  $test_data;
-        
-        $data['token'] = $fcm->fcm_token; // Retrive fcm_token from users table
-        
-        $payload['message'] = $data;
-        $payload = json_encode($payload);
-        
-        //$httpClient = $client->authorize();
-       // $res = $httpClient->post($apiurl, ['json' => $payload]);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $apiurl);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-       // dd($ch);
-           $res = curl_exec($ch);
-         //curl_close($ch);
-        if ($res) {
-            return response()->json([
-                'message' => 'Notification has been Sent'
-            ]);
-        } else {
-                return response()->json([
-                    'message' => $res
-                ]); }
-        } catch (\Exception $e) {
-            DB::rollback();
-            return ['Status' => 'Error', 'Mensaje' => 'Ocurrió un error al realizar el proceso.  Error: ' . $e->getMessage() . ". Linea: " . $e->getLine() . " . Clase: " . $e->getFile() . " . Code: " . $e->getCode()];
-        }
-            //throw $th;
+        $this->notify(new PNotification);
     }
+
+     /**
+    * Assuming that you have a database table which stores device tokens.
+    */
+    // public function deviceTokens(): HasMany
+    // {
+    //     return $this->hasMany(DeviceToken::class);
+    // }
+    
+    public function routeNotificationForFCM($notification)//: string|array|null
+    {
+        return $this->fcm_token;
+        // return $this->deviceTokens->pluck('fcm_token')->toArray();
+    }
+    
+    /**
+    * Optional method to determine which message target to use
+    * We will use TOKEN type when not specified
+    * @see \Kreait\Firebase\Messaging\MessageTarget::TYPES
+    */
+    public function routeNotificationForFCMTargetType($notification)//: ?string
+    {
+        return \Kreait\Firebase\Messaging\MessageTarget::TOKEN;
+    }
+    
+    /**
+    * Optional method to determine which Firebase project to use
+    * We will use default project when not specified
+    */
+    public function routeNotificationForFCMProject($notification)//: ?string
+    {
+        return config('firebase.default');
+    }
+
+    
 }
