@@ -38,7 +38,8 @@ class UsuariosRPT extends Model {
     }
     public function fcmNotification($aplicativo, $details)
     {
-        $this->notify(new PNotification);
+        return $this->notify(new PNotification);
+
     }
 
      /**
@@ -69,10 +70,10 @@ class UsuariosRPT extends Model {
     * Optional method to determine which Firebase project to use
     * We will use default project when not specified
     */
-    public function routeNotificationForFCMProject($notification)//: ?string
-    {
-        return config('firebase.default');
-    }
+    // public function routeNotificationForFCMProject($notification)//: ?string
+    // {
+    //     return config('firebase.default');
+    // }
 
     
 }
