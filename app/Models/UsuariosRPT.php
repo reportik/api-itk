@@ -17,6 +17,8 @@ class UsuariosRPT extends Model {
     public function setFmcAplicativo($fcmAplicativo)
     {
         $this->fcmAplicativo = $fcmAplicativo;
+        $fcm = FCM_Tokens::where('RPT_Usuario_Id', $this->id)->where('Aplicativo', $this->fcmAplicativo)->first();
+        return $fcm->fcm_token;
     }
 
     public function getFoto()

@@ -281,11 +281,11 @@ class PermisosController extends Controller
         //$notifications = $user->unreadNotifications;
         //$userId = $user->id;
         //falta pasarle el details para agregar la notifiacion en la vista
-        $user->setFmcAplicativo('web');
-        return $user->fcmNotification('web', $details);
+        $res = $user->setFmcAplicativo('web');
+        //return $user->fcmNotification('web', $details);
         //event(new UserNotifyEvent('34', $details));
         return response()->json([
-            "status" => true,
+            "status" => $res,
             "message" => "Permiso Guardado"
         ]);
     }
