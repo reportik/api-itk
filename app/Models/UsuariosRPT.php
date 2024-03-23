@@ -11,7 +11,7 @@ class UsuariosRPT extends Model {
     use Notifiable;
     protected $table = 'RPT_Usuarios';
     protected $primaryKey = 'id';
-    protected $fcmAplicativo = 'mi-nomina';
+    public $fcmAplicativo = 'mi-nomina';
     public $timestamps = false;
 
     public function setFmcAplicativo($fcmAplicativo)
@@ -61,6 +61,8 @@ class UsuariosRPT extends Model {
     
     public function routeNotificationForFCM($notification)//: string|array|null
     {
+        dd($notification, $this->fcmAplicativo);
+        //$this->fcmAplicativo = $fcmAplicativo;
         $fcm = FCM_Tokens::where('RPT_Usuario_Id', $this->id)->where('Aplicativo', $this->fcmAplicativo)->first();
         return $fcm->fcm_token;
         //return $this->fcm_token;
