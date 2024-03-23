@@ -286,7 +286,7 @@ class PermisosController extends Controller
         return $user->fcmNotification('web', $details);
         //event(new UserNotifyEvent('34', $details));
         return response()->json([
-            "status" => $res,
+            "status" => true,
             "message" => "Permiso Guardado"
         ]);
     }
