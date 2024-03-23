@@ -44,7 +44,7 @@ class UsuariosRPT extends Model {
     }
     public function fcmNotification($aplicativo, $details)
     {
-        $this->fcmAplicativo = $aplicativo;
+        //$this->fcmAplicativo = $aplicativo;
         return $this->notify(new PNotification($details));
 
     }
