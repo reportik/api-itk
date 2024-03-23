@@ -281,8 +281,8 @@ class PermisosController extends Controller
         //$notifications = $user->unreadNotifications;
         //$userId = $user->id;
         //falta pasarle el details para agregar la notifiacion en la vista
-        $res = $user->routeNotificationForFCM('web');
-        $res = $user->setFmcAplicativo('web');
+        //$res = $user->routeNotificationForFCM('web');
+        //$res = $user->setFmcAplicativo('web');
         return $user->fcmNotification('web', $details);
         //event(new UserNotifyEvent('34', $details));
         return response()->json([
