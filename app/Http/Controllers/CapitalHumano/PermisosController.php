@@ -273,7 +273,7 @@ class PermisosController extends Controller
             'foto' =>  'SIN FOTO.png',
             'action' => url('#compras/Proveedor'),
             'type' => 'toast',
-            'aplicativo' => ['mi-nomina', 'web']
+            'aplicativo' => "'mi-nomina', 'web'"
         ];
 
         // //Notification::send($user, new RPT_Notification($details));

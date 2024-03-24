@@ -64,7 +64,7 @@ class UsuariosRPT extends Model {
     {
         //$this->fcmAplicativo = $fcmAplicativo;
         return FCM_Tokens::where('RPT_Usuario_Id', $this->id)
-        ->whereIn('Aplicativo', $notification->details['aplicativo'])
+        ->whereRaw("Aplicativo IN(". $notification->details['aplicativo'].")")
         ->pluck('fcm_token')->toArray();;
         // return $fcm->fcm_token;
         // return $this->fcm_token;
