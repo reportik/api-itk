@@ -272,7 +272,8 @@ class PermisosController extends Controller
             'body' => 'Pruebas desde Invtek',
             'foto' =>  'SIN FOTO.png',
             'action' => url('#compras/Proveedor'),
-            'type' => 'toast'
+            'type' => 'toast',
+            'aplicativo' => ['mi-nomina', 'web']
         ];
 
         // //Notification::send($user, new RPT_Notification($details));

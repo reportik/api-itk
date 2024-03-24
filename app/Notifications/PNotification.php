@@ -12,7 +12,7 @@ class PNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $details = [];
+    public $details = [];
 
     public function __construct( $details)
     {
