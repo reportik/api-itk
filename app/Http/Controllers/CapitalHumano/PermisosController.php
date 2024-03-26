@@ -248,12 +248,18 @@ class PermisosController extends Controller
             'body' => $cuerpoMensaje,
             'type' => $tipoMensaje,
             'foto' => $fotoMensaje,
-            'action' => $accionMensaje
+            'action' => $accionMensaje,
+            'aplicativo' => "'mi-nomina', 'web'"
         ];
         //Notification::send($user, new RPT_Notification($details));
         $user->storeNewNotification($details);
-        $userId = $user->id;
-        event(new UserNotifyEvent($userId, $details));
+
+        //para PUSHER:
+        //$userId = $user->id;
+        //event(new UserNotifyEvent($userId, $details));
+
+        $user->fcmNotification($details);
+
         return response()->json([
             "status" => true,
             "message" => "Notificado"
@@ -284,7 +290,7 @@ class PermisosController extends Controller
         //falta pasarle el details para agregar la notifiacion en la vista
         //$res = $user->routeNotificationForFCM('web');
         //$res = $user->setFmcAplicativo('web');
-        return $user->fcmNotification($details);
+        $user->fcmNotification($details);
         //event(new UserNotifyEvent('34', $details));
         return response()->json([
             "status" => true,

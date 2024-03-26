@@ -24,6 +24,7 @@ Route::group([
     Route::get("home", [ApiController::class, "home"]);
     Route::get("refresh", [ApiController::class, "refreshToken"]);
     Route::get("logout", [ApiController::class, "logout"]);
+    Route::post('guarda-token', [ApiController::class, "guardaToken"]);
 });
 
 Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\Produccion'], function () {

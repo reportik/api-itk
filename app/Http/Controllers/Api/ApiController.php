@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api;
 use DB;
 use App\Models\User;
 use App\Models\Empleados;
+use App\Models\UsuariosRPT;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Models\FCM_Tokens;
 
 class ApiController extends Controller
 {
@@ -118,6 +120,39 @@ class ApiController extends Controller
         return response()->json([
             "message" => "New access token",
             "token" => $newToken
+        ]);
+    }
+    // To save token value
+    public function guardaToken(Request $request)
+    {
+        $userdata = auth()->user();
+        $user = UsuariosRPT::where('nomina', $userdata['USU_Nombre'])->first();
+
+        $RPT_Usuario_Id = $user->id;
+        $Aplicativo = $request->app;
+        $fecha_creacion = date('Ymd h:i:s');
+
+        $fcm = FCM_Tokens::where('fcm_token', $request->token)->first();
+
+        if (is_null($fcm)) {
+            $fcm = new FCM_Tokens([
+                'RPT_Usuario_Id' => $RPT_Usuario_Id,
+                'fcm_token' => $request->token,
+                'Aplicativo' => $Aplicativo,
+                'fecha_creacion' => $fecha_creacion,
+                'Eliminado' => 0
+            ]);
+            $fcm->save();
+        } else {
+            $fcm->RPT_Usuario_Id = $RPT_Usuario_Id;
+            $fcm->Aplicativo = $Aplicativo;
+            $fcm->fecha_creacion = $fecha_creacion;
+            $fcm->update();
+        }
+
+        return response()->json([
+            "message" => "token guardado",
+            "token" => $request->token
         ]);
     }
 
