@@ -45,7 +45,7 @@
                 <h3>Alerta: {{$ale_nombre}}</h3>
                 <h3>{{$ale_asunto}} </h3>
                 <p>{{ $ale_texto }}</p>
-                @include('plantillas.html_tabla_dinamica.blade')
+                @include('plantillas.html_tabla_dinamica')
             </div>
         </div> <!-- /.row -->
         <br>
