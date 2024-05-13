@@ -5,6 +5,7 @@ namespace App\Models\RPT;
 use DB;
 use App\Models\UsuariosRPT;
 use App\Models\Concerns\UsesUuid;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Model;
 
 class RPT_ALERTA extends Model 
