@@ -24,7 +24,7 @@ class RPT_ALERTA extends Model
                 and ua.UA_ALE_AlertaId = ?
             ",[$this->ALE_Id]);
 
-        $correos = array_pluck($correos_db, 'correo');        
+        $correos = array_column($correos_db, 'correo');        
         $encabezados = array_keys((array) $filas[0]);
         $ale_nombre = $this->ALE_nombre;
         $ale_asunto = $this->ALE_correo_asunto;
