@@ -4,6 +4,7 @@ namespace App\Models\RPT;
 
 use DB;
 use App\Models\UsuariosRPT;
+use App\Events\UserNotifyEvent;
 use App\Models\Concerns\UsesUuid;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Model;
