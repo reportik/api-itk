@@ -269,7 +269,7 @@ class PermisosController extends Controller
     public function sendNotification()
     {
         //dd(\Carbon\Carbon::now());
-        $user = UsuariosRPT::where('nomina', '913')->first();
+        //$user = UsuariosRPT::where('nomina', '913')->first();
         // $empleadoId = DataBaseSession::getEmpleadoId();
         // $empleado = Empleados::find($empleadoId);
         // //dd($empleado, $empleadoId);
@@ -290,8 +290,9 @@ class PermisosController extends Controller
         //falta pasarle el details para agregar la notifiacion en la vista
         //$res = $user->routeNotificationForFCM('web');
         //$res = $user->setFmcAplicativo('web');
-        $user->fcmNotification($details);
-        //event(new UserNotifyEvent('34', $details));
+        
+        //$user->fcmNotification($details);
+        event(new UserNotifyEvent('34', $details));
         return response()->json([
             "status" => true,
             "message" => "Permiso Guardado"
