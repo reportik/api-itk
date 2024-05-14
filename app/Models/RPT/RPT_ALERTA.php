@@ -52,7 +52,7 @@ class RPT_ALERTA extends Model
             ", [$this->ALE_Id]);
 
         $tituloMensaje = $this->ALE_notificacion_title;
-        $cuerpoMensaje = $this->ALE_notificacion_accion;
+        $cuerpoMensaje = $this->ALE_notificacion_body;
         $tipoMensaje = 'alert'; //alert es una ventana, toast es una notificacion discreta
         $accionMensaje = $this->ALE_notificacion_accion;
         $accionMensaje .= (is_null($rpt_id) || ($rpt_id) == '')? '': '?rpt_id='.$rpt_id;
