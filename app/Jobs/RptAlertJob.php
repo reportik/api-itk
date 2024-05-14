@@ -29,6 +29,6 @@ class RptAlertJob implements ShouldQueue
     {
         $alerta = ALE::find($this->alertId);
         $alerta->process();
-        Log::info("Id: ". $this->alertId." run at " . \Carbon\Carbon::now());
+        //Log::info("Id: ". $this->alertId." run at " . \Carbon\Carbon::now());
     }
 }

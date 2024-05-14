@@ -5,15 +5,15 @@ namespace App\Events;
 //use Muliix\User;
 use App\Events\Event;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
-class UserNotifyEvent extends Event implements ShouldBroadcast
+class UserNotifyEvent extends Event implements ShouldBroadcastNow
 {
     use SerializesModels;
 
     public $user;
     public $details;
-    /**
+    /** 
      * Create a new event instance.
      *
      * @return void

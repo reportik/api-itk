@@ -279,10 +279,10 @@ class PermisosController extends Controller
             'foto' =>  'SIN FOTO.png',
             'action' => url('#compras/Proveedor'),
             'type' => 'toast',
-            'aplicativo' => "'mi-nomina', 'web'"
+            'aplicativo' => "'web'"
         ];
 
-        // //Notification::send($user, new RPT_Notification($details));
+        //Notification::send($user, new RPT_Notification($details));
         // $user->storeNewNotification($details);
 
         //$notifications = $user->unreadNotifications;
@@ -295,7 +295,7 @@ class PermisosController extends Controller
         event(new UserNotifyEvent('34', $details));
         return response()->json([
             "status" => true,
-            "message" => "Permiso Guardado"
+            "message" => "true"
         ]);
     }
     
