@@ -26,18 +26,22 @@ class RPT_ALERTA extends Model
                 and ua.UA_ALE_AlertaId = ?
             ",[$this->ALE_Id]);
 
-        $correos = array_column($correos_db, 'correo');        
-        $encabezados = array_keys((array) $filas[0]);
-        $ale_nombre = $this->ALE_nombre;
-        $ale_asunto = $this->ALE_correo_asunto;
-        $ale_texto = $this->ALE_correo_texto;
+       if (count($correos_db)>0) {
+            $correos = array_column($correos_db, 'correo');
+            $encabezados = array_keys((array) $filas[0]);
+            $ale_nombre = $this->ALE_nombre;
+            $ale_asunto = $this->ALE_correo_asunto;
+            $ale_texto = $this->ALE_correo_texto;
 
-        Mail::send('plantillas.email_alerta_resumen', 
-        compact('encabezados', 'filas', 'ale_nombre', 'ale_asunto', 'ale_texto')
-        , function ($msj) use ($correos, $ale_asunto) {
-            $msj->subject($ale_asunto); //ASUNTO DEL CORREO
-            $msj->to($correos); //Correo del destinatario
-        });
+            Mail::send(
+                'plantillas.email_alerta_resumen',
+                compact('encabezados', 'filas', 'ale_nombre', 'ale_asunto', 'ale_texto'),
+                function ($msj) use ($correos, $ale_asunto) {
+                    $msj->subject($ale_asunto); //ASUNTO DEL CORREO
+                    $msj->to($correos); //Correo del destinatario
+                }
+            );
+       }
     }
 
     public function sendNotification($rpt_id)
@@ -48,9 +52,10 @@ class RPT_ALERTA extends Model
             ", [$this->ALE_Id]);
 
         $tituloMensaje = $this->ALE_notificacion_title;
-        $cuerpoMensaje = $this->ALE_notificacion_body;
+        $cuerpoMensaje = $this->ALE_notificacion_accion;
         $tipoMensaje = 'alert'; //alert es una ventana, toast es una notificacion discreta
-        $accionMensaje = $this->ALE_notificacion_accion. (!is_null($rpt_id))? '?rpt_id='.$rpt_id: '';
+        $accionMensaje = $this->ALE_notificacion_accion;
+        $accionMensaje .= (is_null($rpt_id) || ($rpt_id) == '')? '': '?rpt_id='.$rpt_id;
         
         foreach ($usuarios_db as $empleado) {
             
