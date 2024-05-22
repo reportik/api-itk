@@ -56,14 +56,16 @@ class RPT_ALERTA extends Model
             inner join Empleados e on RIGHT('000' + CONVERT(varchar, e.EMP_CodigoEmpleado), 4)  = RIGHT('000' + CONVERT(varchar, ua.UA_EMP_CodigoEmpleado), 4) 
             where ua.UA_notificarInterno = 1 and ua.UA_ALE_AlertaId = ?
             ", [$this->ALE_Id]);
+        $tituloMensaje = $this->ALE_notificacion_title;
+        $cuerpoMensaje = $this->ALE_notificacion_body;
+
         if (count($filas) == 1) {
             extract((array) $filas[0]);
-            $tituloMensaje =  "{$this->ALE_notificacion_title}";
-            $cuerpoMensaje =  "{$this->ALE_notificacion_body}";
-        } else {
-            $tituloMensaje = $this->ALE_notificacion_title;
-            $cuerpoMensaje = $this->ALE_notificacion_body;
-        }
+           
+            eval("\$tituloMensaje = \"$tituloMensaje\";");
+            eval("\$cuerpoMensaje = \"$cuerpoMensaje\";");
+            
+        } 
             $tipoMensaje = 'alert'; //alert es una ventana, toast es una notificacion discreta
             $accionMensaje = $this->ALE_notificacion_accion;
             $accionMensaje .= (is_null($rpt_id) || ($rpt_id) == '')? '': '?rpt_id='.$rpt_id;
