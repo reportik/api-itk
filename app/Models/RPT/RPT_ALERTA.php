@@ -58,8 +58,8 @@ class RPT_ALERTA extends Model
             ", [$this->ALE_Id]);
         if (count($filas) == 1) {
             extract((array) $filas[0]);
-            $tituloMensaje =  ($this->ALE_notificacion_title);
-            $cuerpoMensaje =  ($this->ALE_notificacion_body);
+            $tituloMensaje =  "{$this->ALE_notificacion_title}";
+            $cuerpoMensaje =  "{$this->ALE_notificacion_body}";
         } else {
             $tituloMensaje = $this->ALE_notificacion_title;
             $cuerpoMensaje = $this->ALE_notificacion_body;
