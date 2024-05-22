@@ -33,8 +33,8 @@ class RPT_ALERTA extends Model
 
             if (count($filas) == 1) {
                 extract((array) $filas[0]);
-                $ale_asunto = eval ($this->ALE_correo_asunto);
-                $ale_texto = eval ($this->ALE_correo_texto);
+                $ale_asunto =  ($this->ALE_correo_asunto);
+                $ale_texto =  ($this->ALE_correo_texto);
             } else {
                 $ale_asunto = $this->ALE_correo_asunto;
                 $ale_texto = $this->ALE_correo_texto;
@@ -58,8 +58,8 @@ class RPT_ALERTA extends Model
             ", [$this->ALE_Id]);
         if (count($filas) == 1) {
             extract((array) $filas[0]);
-            $tituloMensaje = eval ($this->ALE_notificacion_title);
-            $cuerpoMensaje = eval ($this->ALE_notificacion_body);
+            $tituloMensaje =  ($this->ALE_notificacion_title);
+            $cuerpoMensaje =  ($this->ALE_notificacion_body);
         } else {
             $tituloMensaje = $this->ALE_notificacion_title;
             $cuerpoMensaje = $this->ALE_notificacion_body;
