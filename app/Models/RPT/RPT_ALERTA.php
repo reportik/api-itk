@@ -30,15 +30,14 @@ class RPT_ALERTA extends Model
             $correos = array_column($correos_db, 'correo');
             $encabezados = array_keys((array) $filas[0]);
             $ale_nombre = $this->ALE_nombre;
+            $ale_asunto = $this->ALE_correo_asunto;
+            $ale_texto = $this->ALE_correo_texto;
 
             if (count($filas) == 1) {
                 extract((array) $filas[0]);
-                $ale_asunto =  ($this->ALE_correo_asunto);
-                $ale_texto =  ($this->ALE_correo_texto);
-            } else {
-                $ale_asunto = $this->ALE_correo_asunto;
-                $ale_texto = $this->ALE_correo_texto;
-            }
+                eval("\$ale_asunto = \"$ale_asunto\";");
+                eval("\$ale_texto = \"$ale_texto\";");
+            } 
             Mail::send(
                 'plantillas.email_alerta_resumen',
                 compact('encabezados', 'filas', 'ale_nombre', 'ale_asunto', 'ale_texto'),
