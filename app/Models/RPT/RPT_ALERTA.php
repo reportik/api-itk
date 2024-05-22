@@ -30,9 +30,15 @@ class RPT_ALERTA extends Model
             $correos = array_column($correos_db, 'correo');
             $encabezados = array_keys((array) $filas[0]);
             $ale_nombre = $this->ALE_nombre;
-            $ale_asunto = $this->ALE_correo_asunto;
-            $ale_texto = $this->ALE_correo_texto;
 
+            if (count($filas) == 1) {
+                extract((array) $filas[0]);
+                $ale_asunto = eval ($this->ALE_correo_asunto);
+                $ale_texto = eval ($this->ALE_correo_texto);
+            } else {
+                $ale_asunto = $this->ALE_correo_asunto;
+                $ale_texto = $this->ALE_correo_texto;
+            }
             Mail::send(
                 'plantillas.email_alerta_resumen',
                 compact('encabezados', 'filas', 'ale_nombre', 'ale_asunto', 'ale_texto'),
@@ -44,19 +50,24 @@ class RPT_ALERTA extends Model
        }
     }
 
-    public function sendNotification($rpt_id)
+    public function sendNotification($rpt_id, $filas)
     {
         $usuarios_db = DB::select("SELECT ua.UA_EMP_CodigoEmpleado as codigo, e.EMP_Fotografia as foto FROM RPT_ALE_UsuariosAlertas ua
             inner join Empleados e on RIGHT('000' + CONVERT(varchar, e.EMP_CodigoEmpleado), 4)  = RIGHT('000' + CONVERT(varchar, ua.UA_EMP_CodigoEmpleado), 4) 
             where ua.UA_notificarInterno = 1 and ua.UA_ALE_AlertaId = ?
             ", [$this->ALE_Id]);
+        if (count($filas) == 1) {
+            extract((array) $filas[0]);
+            $tituloMensaje = eval ($this->ALE_notificacion_title);
+            $cuerpoMensaje = eval ($this->ALE_notificacion_body);
+        } else {
+            $tituloMensaje = $this->ALE_notificacion_title;
+            $cuerpoMensaje = $this->ALE_notificacion_body;
+        }
+            $tipoMensaje = 'alert'; //alert es una ventana, toast es una notificacion discreta
+            $accionMensaje = $this->ALE_notificacion_accion;
+            $accionMensaje .= (is_null($rpt_id) || ($rpt_id) == '')? '': '?rpt_id='.$rpt_id;
 
-        $tituloMensaje = $this->ALE_notificacion_title;
-        $cuerpoMensaje = $this->ALE_notificacion_body;
-        $tipoMensaje = 'alert'; //alert es una ventana, toast es una notificacion discreta
-        $accionMensaje = $this->ALE_notificacion_accion;
-        $accionMensaje .= (is_null($rpt_id) || ($rpt_id) == '')? '': '?rpt_id='.$rpt_id;
-        
         foreach ($usuarios_db as $empleado) {
             
             $user = UsuariosRPT::where('nomina', $empleado->codigo)->first();
@@ -92,13 +103,13 @@ class RPT_ALERTA extends Model
         if (count($result) > 0) {
             if ($this->ALE_enviar_resumen) {
                 self::sendEmail($result);
-                self::sendNotification(null);
+                self::sendNotification(null, $result);
             } else {                
                 foreach ($result as $value) {
                     $data[0] = $value; // toArray -----------------------------
                     $rpt_id = $value->{$this->ALE_notificacion_parametro};
                     self::sendEmail($data);
-                    self::sendNotification($rpt_id);
+                    self::sendNotification($rpt_id, $data);
                 }
             }
 
