@@ -82,12 +82,12 @@ class RPT_ALERTA extends Model
                 'action' => $accionMensaje,
                 'aplicativo' => 'web'
             ];
-
-            $user->storeNewNotification($details);
-
-            //para PUSHER:
-            $userId = $user->id;
-            event(new UserNotifyEvent($userId, $details));
+            if (!is_null($user)) {
+                $user->storeNewNotification($details);
+                //para PUSHER:
+                $userId = $user->id;
+                event(new UserNotifyEvent($userId, $details));
+            }
         }
         //para Firebase
         //$user->fcmNotification($details);
