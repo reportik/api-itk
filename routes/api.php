@@ -33,10 +33,15 @@ Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers
 });
 Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\CapitalHumano'], function () {
     Route::any('permisos/tipos', 'PermisosController@permisosTipos');
+    Route::any('permisos/mis-registros', 'PermisosController@getMisPermisos');
+    Route::any('permisos/resumen', 'PermisosController@getResumen');
+    Route::any('permisos/vacaciones-disponibles', 'PermisosController@getVacacionesDisponibles');
+    Route::any('permisos/crear', 'PermisosController@crear');
+    Route::any('permisos/eliminar', 'PermisosController@eliminar');
     Route::any('send', 'PermisosController@sendNotification');
     Route::resource('permisos', 'PermisosController');
-    Route::post('permisos-delete', 'PermisosController@destroy');
+    Route::post('permisos-delete', 'PermisosController@eliminar');
     Route::post('permisos-update', 'PermisosController@update');
-    
+
     Route::post('change-password', 'EmpleadosSistemaController@changePassword');
 });
