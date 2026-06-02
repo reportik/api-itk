@@ -474,11 +474,15 @@ class PermisosController extends Controller
     private function notificarRhNuevoPermiso($fila, $empleado)
     {
         try {
-            $rh_empleados = DB::select("select PER_PermisoId, PER_TipoPermiso,
-                Usuarios.USU_EMP_EmpleadoId, Usuarios.USU_Nombre
-                from Permisos
-                inner join Usuarios on USU_PER_PermisoId=PER_PermisoId
-                WHERE PER_PermisoId ='a129d92c-2ba1-4fdf-95d6-17ad189a7a13'");
+            $rh_empleados = DB::select("
+                SELECT u.USU_Nombre
+                FROM RPT_EmpleadoCamposAdicionales eca
+                INNER JOIN Empleados e ON e.EMP_EmpleadoId = eca.ECA_EmpleadoId
+                INNER JOIN Usuarios u ON u.USU_EMP_EmpleadoId = e.EMP_EmpleadoId
+                WHERE eca.ECA_Eliminado = 0
+                    AND eca.ECA_GestionaPermisosNotificacion = 1
+                    AND e.EMP_Activo = 1
+            ");
 
             $userdata = auth()->user();
             $empleadoId = $userdata['USU_EMP_EmpleadoId'] ?? null;
