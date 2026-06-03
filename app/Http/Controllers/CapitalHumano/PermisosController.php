@@ -498,7 +498,7 @@ class PermisosController extends Controller
             $tituloMensaje = 'Nuevo Permiso Folio #' . $fila->CHI_Id . '. (' . $empleadoRemitente->EMP_Nombre . ' ' . $empleadoRemitente->EMP_PrimerApellido . ')';
             $cuerpoMensaje = '¿Desea revisar el permiso ahora?';
             $fotoMensaje = (is_null($empleadoRemitente->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
-            $accionMensaje = url('#capital-humano/permisos/' . $empleadoRemitente->EMP_EmpleadoId);
+            $accionMensaje = url('#capital-humano/permisos');
 
             foreach ($rh_empleados as $value) {
                 $this->sendAlert($value->USU_Nombre, $tituloMensaje, $cuerpoMensaje, 'alert', $fotoMensaje, $accionMensaje);
