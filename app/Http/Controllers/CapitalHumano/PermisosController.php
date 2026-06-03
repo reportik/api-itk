@@ -525,6 +525,7 @@ class PermisosController extends Controller
         ];
 
         $user->storeNewNotification($details);
+        event(new \App\Events\UserNotifyEvent($user->id, $details));
         $user->fcmNotification($details);
 
         return response()->json([
