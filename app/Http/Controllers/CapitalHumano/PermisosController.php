@@ -11,6 +11,7 @@ use App\Models\RPT\RPT_CHECADOR_INCIDENCIA as CHI;
 class PermisosController extends Controller
 {
     const CHE_VACACIONES = 6;
+    const MAX_DIAS_VACACIONES_SEGUIDOS = 5;
     const ESTATUS_ENVIADO = 'S';
     const ESTATUS_ARCHIVADO = 'D';
 
@@ -19,6 +20,33 @@ class PermisosController extends Controller
     private function requiereValidacionSaldoVacaciones($incidenciaId)
     {
         return (int) $incidenciaId === self::CHE_VACACIONES;
+    }
+
+    private function esTipoVacaciones($incidenciaId)
+    {
+        $row = DB::selectOne("
+            SELECT TOP 1 CHE_Id
+            FROM RPT_Checador_ConfigEstatus
+            WHERE CHE_Id = ?
+                AND CHE_Tipo = 'INCIDENCIA'
+                AND UPPER(CHE_Estatus) LIKE '%VACACION%'
+        ", [$incidenciaId]);
+
+        return $row !== null;
+    }
+
+    private function validarLimiteDiasVacaciones($incidenciaId, $fechaInicio, $fechaTermino)
+    {
+        if (!$this->esTipoVacaciones($incidenciaId)) {
+            return true;
+        }
+
+        $diasSolicitados = $this->calcularDiasSolicitud($fechaInicio, $fechaTermino);
+        if ($diasSolicitados > self::MAX_DIAS_VACACIONES_SEGUIDOS) {
+            return 'No puedes solicitar más de ' . self::MAX_DIAS_VACACIONES_SEGUIDOS . ' días seguidos de vacaciones.';
+        }
+
+        return true;
     }
 
     public function permisosTipos()
@@ -185,6 +213,11 @@ class PermisosController extends Controller
             $validacionFechas = $this->validarFechasSolicitud($fechaInicio, $fechaTermino);
             if ($validacionFechas !== true) {
                 return response()->json(['Status' => 'Error', 'Mensaje' => $validacionFechas]);
+            }
+
+            $validacionLimiteVacaciones = $this->validarLimiteDiasVacaciones($incidenciaId, $fechaInicio, $fechaTermino);
+            if ($validacionLimiteVacaciones !== true) {
+                return response()->json(['Status' => 'Error', 'Mensaje' => $validacionLimiteVacaciones]);
             }
 
             if ($this->requiereValidacionSaldoVacaciones($incidenciaId)) {
