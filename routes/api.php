@@ -44,4 +44,6 @@ Route::group(["prefix" => "capital-humano", "middleware" => ["auth:api"], 'names
     Route::post('permisos-update', 'PermisosController@update');
 
     Route::post('change-password', 'EmpleadosSistemaController@changePassword');
+    Route::any('mi-perfil', 'PerfilEmpleadoController@getMiPerfil');
+    Route::post('mi-perfil/solicitar-cambios', 'PerfilEmpleadoController@solicitarCambios');
 });
