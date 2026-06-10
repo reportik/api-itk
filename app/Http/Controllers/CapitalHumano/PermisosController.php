@@ -16,11 +16,20 @@ class PermisosController extends Controller
 
     const MENSAJE_SOLICITUD_ENVIADA = 'Tu solicitud fue enviada, no se considera como autorizada. Esta será resuelta en horario hábil, en un plazo de 24 horas.';
 
+    private function requiereValidacionSaldoVacaciones($incidenciaId)
+    {
+        return (int) $incidenciaId === self::CHE_VACACIONES;
+    }
+
     public function permisosTipos()
     {
         try {
             $tipos = DB::select("
-                SELECT CHE_Id AS permisoId, CHE_Estatus AS permiso
+                SELECT
+                    CHE_Id AS permisoId,
+                    CHE_Estatus AS permiso,
+                    CASE WHEN CHE_Id = " . self::CHE_VACACIONES . " THEN 1 ELSE 0 END AS requiereSaldoVacaciones,
+                    CASE WHEN UPPER(CHE_Estatus) LIKE '%VACACION%' THEN 1 ELSE 0 END AS esVacaciones
                 FROM RPT_Checador_ConfigEstatus
                 WHERE CHE_Tipo = 'INCIDENCIA' AND CHE_Activo = 1
                 ORDER BY CHE_Estatus
@@ -47,15 +56,12 @@ class PermisosController extends Controller
                 return response()->json(['Status' => 'Error', 'Mensaje' => 'No se encontró el empleado en sesión.'], 401);
             }
 
-            $saldo = $this->obtenerSaldoVacaciones($empleado);
+            $resumen = $this->obtenerResumenVacaciones($empleado);
 
-            return response()->json([
+            return response()->json(array_merge([
                 'Status' => 'Valido',
-                'diasDisponibles' => $saldo['diasDisponibles'],
-                'diasDerecho' => $saldo['diasDerecho'],
-                'diasTomados' => $saldo['diasTomados'],
-                'puedeSolicitar' => $saldo['diasDisponibles'] > 0,
-            ]);
+                'puedeSolicitar' => $resumen['diasDisponibles'] > 0,
+            ], $resumen));
         } catch (\Exception $e) {
             return response()->json([
                 'Status' => 'Error',
@@ -81,12 +87,13 @@ class PermisosController extends Controller
                     AND RIGHT('000' + CONVERT(varchar, CHI.CHI_EMP_Empleado), 4) = RIGHT('000' + CONVERT(varchar, ?), 4)
             ", [self::ESTATUS_ARCHIVADO, $empleado]);
 
-            $saldo = $this->obtenerSaldoVacaciones($empleado);
+            $resumen = $this->obtenerResumenVacaciones($empleado);
 
             return response()->json([
                 'Status' => 'Valido',
                 'permisosUltimoMes' => (int) $permisosUltimoMes->total,
-                'diasVacacionesDisponibles' => $saldo['diasDisponibles'],
+                'diasVacacionesDisponibles' => $resumen['diasDisponibles'],
+                'vacaciones' => $resumen,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -180,8 +187,8 @@ class PermisosController extends Controller
                 return response()->json(['Status' => 'Error', 'Mensaje' => $validacionFechas]);
             }
 
-            if ($incidenciaId === self::CHE_VACACIONES) {
-                $saldo = $this->obtenerSaldoVacaciones($empleado);
+            if ($this->requiereValidacionSaldoVacaciones($incidenciaId)) {
+                $saldo = $this->obtenerResumenVacaciones($empleado);
                 if ($saldo['diasDisponibles'] <= 0) {
                     return response()->json([
                         'Status' => 'Error',
@@ -252,6 +259,10 @@ class PermisosController extends Controller
                 return response()->json(['Status' => 'Error', 'Mensaje' => 'Folio de solicitud no válido.']);
             }
 
+            if ($accion === 'cancelar') {
+                return $this->cancelarSolicitudEmpleado($empleado, $id);
+            }
+
             $permiso = CHI::find($id);
             if (!$permiso || !$this->perteneceAlEmpleado($permiso, $empleado)) {
                 return response()->json(['Status' => 'Error', 'Mensaje' => 'La solicitud no existe o no te pertenece.']);
@@ -259,20 +270,6 @@ class PermisosController extends Controller
 
             if ((int) $permiso->CHI_Eliminado === 1) {
                 return response()->json(['Status' => 'Error', 'Mensaje' => 'La solicitud ya fue cancelada.']);
-            }
-
-            if ($accion === 'cancelar') {
-                if ($permiso->CHI_EstatusPermiso !== self::ESTATUS_ENVIADO) {
-                    return response()->json([
-                        'Status' => 'Error',
-                        'Mensaje' => 'Solo puedes cancelar solicitudes en estatus ENVIADO.',
-                    ]);
-                }
-
-                $permiso->CHI_Eliminado = 1;
-                $permiso->save();
-
-                return response()->json(['Status' => 'Valido', 'Mensaje' => 'Solicitud cancelada correctamente.']);
             }
 
             if ($permiso->CHI_EstatusPermiso === self::ESTATUS_ARCHIVADO) {
@@ -391,12 +388,84 @@ class PermisosController extends Controller
         return count($row) > 0;
     }
 
-    private function obtenerSaldoVacaciones($empleado)
+    private function cancelarSolicitudEmpleado($empleado, $id)
+    {
+        DB::beginTransaction();
+        try {
+            $permiso = CHI::where('CHI_Id', $id)->lockForUpdate()->first();
+            if (!$permiso || !$this->perteneceAlEmpleado($permiso, $empleado)) {
+                DB::rollBack();
+                return response()->json([
+                    'Status' => 'Error',
+                    'Mensaje' => 'La solicitud no existe o no te pertenece.',
+                ], 404);
+            }
+
+            if ((int) $permiso->CHI_Eliminado === 1) {
+                DB::rollBack();
+                return response()->json([
+                    'Status' => 'Error',
+                    'Mensaje' => 'La solicitud ya fue cancelada.',
+                    'Codigo' => 'PERMISO_YA_CANCELADO',
+                ], 422);
+            }
+
+            $mensaje = $this->mensajeCancelacionNoPermitida($permiso);
+            if ($mensaje !== null) {
+                DB::rollBack();
+                return response()->json([
+                    'Status' => 'Error',
+                    'Mensaje' => $mensaje,
+                    'Codigo' => 'PERMISO_NO_CANCELABLE',
+                ], 422);
+            }
+
+            $permiso->CHI_Eliminado = 1;
+            $permiso->save();
+            DB::commit();
+
+            return response()->json(['Status' => 'Valido', 'Mensaje' => 'Solicitud cancelada correctamente.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    private function mensajeCancelacionNoPermitida($permiso)
+    {
+        $estatus = strtoupper(trim((string) $permiso->CHI_EstatusPermiso));
+        if ($estatus === self::ESTATUS_ENVIADO) {
+            return null;
+        }
+
+        return 'Recursos Humanos ya revisó esta solicitud (estatus: '
+            . $this->etiquetaEstatusPermiso($estatus)
+            . '). Ya no puede cancelarse.';
+    }
+
+    private function etiquetaEstatusPermiso($codigo)
+    {
+        $codigo = strtoupper(trim((string) $codigo));
+        $map = [
+            'S' => 'ENVIADO',
+            'E' => 'EN REVISION',
+            'A' => 'APROBADO',
+            'R' => 'RECHAZADO',
+            'D' => 'ARCHIVADO',
+            'N' => 'NO APLICA',
+        ];
+
+        return isset($map[$codigo]) ? $map[$codigo] : $codigo;
+    }
+
+    private function obtenerResumenVacaciones($empleado)
     {
         $rows = DB::select("exec SP_RPT_VAC_VACACIONES_XEMPLEADO '" . $empleado . "'");
 
         if (count($rows) === 0) {
             return [
+                'aniosCumplidos' => 0,
+                'aniosProporcional' => 0,
                 'diasDerecho' => 0,
                 'diasTomados' => 0,
                 'diasDisponibles' => 0,
@@ -408,6 +477,8 @@ class PermisosController extends Controller
         $diasTomados = isset($resumen->VAC_tomadas) ? (float) $resumen->VAC_tomadas : 0;
 
         return [
+            'aniosCumplidos' => isset($resumen->EMP_anios) ? (float) $resumen->EMP_anios : 0,
+            'aniosProporcional' => isset($resumen->EMP_anios_decimal) ? (float) $resumen->EMP_anios_decimal : 0,
             'diasDerecho' => $diasDerecho,
             'diasTomados' => $diasTomados,
             'diasDisponibles' => max(0, $diasDerecho - $diasTomados),
