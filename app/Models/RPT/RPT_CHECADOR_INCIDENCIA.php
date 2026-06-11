@@ -8,8 +8,7 @@ class RPT_CHECADOR_INCIDENCIA extends Model
     protected $primaryKey = 'CHI_Id';
     public $timestamps = false;
     protected $fillable = [
-        'CHI_Id'
-        ,'CHI_EMP_Empleado'
+        'CHI_EMP_Empleado'
         ,'CHI_CHE_Id'
         ,'CHI_FechaInicio'
         ,'CHI_FechaTermino'

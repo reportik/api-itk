@@ -123,9 +123,15 @@ class PerfilEmpleadoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            $mensaje = $e->getMessage();
+            if (stripos($mensaje, 'truncat') !== false || stripos($mensaje, 'String or binary data would be truncated') !== false) {
+                $mensaje = 'No fue posible guardar la solicitud: el detalle excede el tamaño permitido. '
+                    . 'Ejecuta el script docs/sql/insert_solicito_cambio.sql (ampliación de CHI_Descripcion).';
+            }
+
             return response()->json([
                 'Status' => 'Error',
-                'Mensaje' => 'Ocurrió un error al enviar la solicitud. ' . $e->getMessage(),
+                'Mensaje' => 'Ocurrió un error al enviar la solicitud. ' . $mensaje,
             ], 500);
         }
     }
@@ -263,17 +269,9 @@ class PerfilEmpleadoController extends Controller
 
     private function construirDescripcionCambios(array $cambios)
     {
-        $lineas = ['Solicitud de cambio de perfil (' . count($cambios) . ' campo(s))'];
-
-        foreach ($cambios as $cambio) {
-            $anterior = $cambio['anterior'] !== '' ? $cambio['anterior'] : '(vacío)';
-            $lineas[] = '• ' . $cambio['label'] . ': ' . $anterior . ' → ' . $cambio['nuevo'];
-        }
-
-        $resumen = implode("\n", $lineas);
         $json = json_encode(['tipo' => 'CAMBIO_PERFIL', 'cambios' => $cambios], JSON_UNESCAPED_UNICODE);
 
-        return self::MARCA_CAMBIO_PERFIL . $resumen . self::JSON_DELIMITER . $json;
+        return self::MARCA_CAMBIO_PERFIL . self::JSON_DELIMITER . $json;
     }
 
     private function obtenerCheIdSolicitoCambio()
@@ -281,9 +279,10 @@ class PerfilEmpleadoController extends Controller
         $row = DB::selectOne("
             SELECT TOP 1 CHE_Id
             FROM RPT_Checador_ConfigEstatus
-            WHERE CHE_Tipo = 'MODIFICACION'
-                AND CHE_Activo = 1
-                AND UPPER(CHE_Estatus) = 'SOLICITO CAMBIO'
+            WHERE CHE_Activo = 1
+                AND UPPER(LTRIM(RTRIM(CHE_Estatus))) = 'SOLICITO CAMBIO'
+                AND CHE_Tipo IN ('INCIDENCIA', 'MODIFICACION')
+            ORDER BY CASE WHEN CHE_Tipo = 'INCIDENCIA' THEN 0 ELSE 1 END, CHE_Id DESC
         ");
 
         return $row ? (int) $row->CHE_Id : null;
