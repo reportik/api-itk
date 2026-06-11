@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\CapitalHumano;
 
 use DB;
-use App\Models\UsuariosRPT;
-use App\Events\UserNotifyEvent;
+use App\Models\Empleados;
 use App\Http\Controllers\Controller;
 use App\Models\RPT\RPT_CHECADOR_INCIDENCIA as CHI;
 
@@ -113,14 +112,19 @@ class PerfilEmpleadoController extends Controller
 
             DB::commit();
 
-            $this->notificarRhSolicitudCambio($fila, $codigoEmpleado, count($cambiosNormalizados));
+            $folio = $fila->CHI_Id;
+            $totalCambios = count($cambiosNormalizados);
+
+            dispatch(function () use ($folio, $empleadoId, $totalCambios) {
+                app(self::class)->notificarRhSolicitudCambio($folio, $empleadoId, $totalCambios);
+            })->afterResponse();
 
             return response()->json([
                 'Status' => 'Valido',
                 'Mensaje' => 'Tu solicitud fue enviada, no se considera como autorizada. Te notificaremos cuando sea resuelta.',
-                'folio' => $fila->CHI_Id,
+                'folio' => $folio,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             $mensaje = $e->getMessage();
@@ -313,7 +317,7 @@ class PerfilEmpleadoController extends Controller
         return $timestamp ? date('d/m/Y', $timestamp) : $fecha;
     }
 
-    private function notificarRhSolicitudCambio($fila, $codigoEmpleado, $totalCambios)
+    public function notificarRhSolicitudCambio($folio, $empleadoId, $totalCambios)
     {
         try {
             $rh_empleados = DB::select("
@@ -326,54 +330,35 @@ class PerfilEmpleadoController extends Controller
                     AND e.EMP_Activo = 1
             ");
 
-            $empleadoRemitente = DB::selectOne("
-                SELECT EMP_Nombre, EMP_PrimerApellido, EMP_Fotografia
-                FROM Empleados
-                WHERE RIGHT('000' + CONVERT(varchar, EMP_CodigoEmpleado), 4) = RIGHT('000' + CONVERT(varchar, ?), 4)
-            ", [$codigoEmpleado]);
-
+            $empleadoRemitente = Empleados::find($empleadoId);
             if (!$empleadoRemitente || count($rh_empleados) === 0) {
                 return;
             }
 
-            $tituloMensaje = 'Solicitud cambio de perfil Folio #' . $fila->CHI_Id . '. ('
+            $tituloMensaje = 'Solicitud cambio de perfil Folio #' . $folio . '. ('
                 . $empleadoRemitente->EMP_Nombre . ' ' . $empleadoRemitente->EMP_PrimerApellido . ')';
             $cuerpoMensaje = 'El empleado solicitó modificar ' . $totalCambios . ' dato(s). ¿Desea revisar la solicitud?';
-            $fotoMensaje = empty($empleadoRemitente->EMP_Fotografia) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
+            $fotoMensaje = is_null($empleadoRemitente->EMP_Fotografia) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
             $accionMensaje = url('#capital-humano/permisos');
 
+            $permisosController = app(PermisosController::class);
+
             foreach ($rh_empleados as $rh) {
-                $this->enviarAlertaRh(
-                    $rh->USU_Nombre,
-                    $tituloMensaje,
-                    $cuerpoMensaje,
-                    $fotoMensaje,
-                    $accionMensaje
-                );
+                try {
+                    $permisosController->sendAlert(
+                        $rh->USU_Nombre,
+                        $tituloMensaje,
+                        $cuerpoMensaje,
+                        'alert',
+                        $fotoMensaje,
+                        $accionMensaje
+                    );
+                } catch (\Throwable $e) {
+                    // Continuar notificando a los demás destinatarios.
+                }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // La notificación no debe impedir guardar la solicitud.
         }
-    }
-
-    private function enviarAlertaRh($codigoEmpDestinatario, $tituloMensaje, $cuerpoMensaje, $fotoMensaje, $accionMensaje)
-    {
-        $user = UsuariosRPT::where('nomina', $codigoEmpDestinatario)->first();
-        if (!$user) {
-            return;
-        }
-
-        $details = [
-            'title' => $tituloMensaje,
-            'body' => $cuerpoMensaje,
-            'type' => 'alert',
-            'foto' => $fotoMensaje,
-            'action' => $accionMensaje,
-            'aplicativo' => "'mi-nomina', 'web'",
-        ];
-
-        $user->storeNewNotification($details);
-        event(new UserNotifyEvent($user->id, $details));
-        $user->fcmNotification($details);
     }
 }
