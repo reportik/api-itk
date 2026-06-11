@@ -117,7 +117,7 @@ class PerfilEmpleadoController extends Controller
 
             return response()->json([
                 'Status' => 'Valido',
-                'Mensaje' => 'Tu solicitud de cambio de perfil fue enviada. Recursos Humanos la revisará y aplicará los cambios manualmente si son aprobados.',
+                'Mensaje' => 'Tu solicitud fue enviada, no se considera como autorizada. Te notificaremos cuando sea resuelta.',
                 'folio' => $fila->CHI_Id,
             ]);
         } catch (\Exception $e) {
@@ -281,7 +281,7 @@ class PerfilEmpleadoController extends Controller
         $row = DB::selectOne("
             SELECT TOP 1 CHE_Id
             FROM RPT_Checador_ConfigEstatus
-            WHERE CHE_Tipo = 'INCIDENCIA'
+            WHERE CHE_Tipo = 'MODIFICACION'
                 AND CHE_Activo = 1
                 AND UPPER(CHE_Estatus) = 'SOLICITO CAMBIO'
         ");
