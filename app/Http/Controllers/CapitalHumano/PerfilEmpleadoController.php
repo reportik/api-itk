@@ -4,6 +4,7 @@ namespace App\Http\Controllers\CapitalHumano;
 
 use DB;
 use App\Models\Empleados;
+use App\Services\RhPermisosNotificacionService;
 use App\Http\Controllers\Controller;
 use App\Models\RPT\RPT_CHECADOR_INCIDENCIA as CHI;
 
@@ -116,7 +117,7 @@ class PerfilEmpleadoController extends Controller
             $totalCambios = count($cambiosNormalizados);
 
             dispatch(function () use ($folio, $empleadoId, $totalCambios) {
-                app(self::class)->notificarRhSolicitudCambio($folio, $empleadoId, $totalCambios);
+                app(RhPermisosNotificacionService::class)->notificarCambioPerfil($folio, $empleadoId, $totalCambios);
             })->afterResponse();
 
             return response()->json([
@@ -315,50 +316,5 @@ class PerfilEmpleadoController extends Controller
         $timestamp = strtotime($fecha);
 
         return $timestamp ? date('d/m/Y', $timestamp) : $fecha;
-    }
-
-    public function notificarRhSolicitudCambio($folio, $empleadoId, $totalCambios)
-    {
-        try {
-            $rh_empleados = DB::select("
-                SELECT u.USU_Nombre
-                FROM RPT_EmpleadoCamposAdicionales eca
-                INNER JOIN Empleados e ON e.EMP_EmpleadoId = eca.ECA_EmpleadoId
-                INNER JOIN Usuarios u ON u.USU_EMP_EmpleadoId = e.EMP_EmpleadoId
-                WHERE eca.ECA_Eliminado = 0
-                    AND eca.ECA_GestionaPermisosNotificacion = 1
-                    AND e.EMP_Activo = 1
-            ");
-
-            $empleadoRemitente = Empleados::find($empleadoId);
-            if (!$empleadoRemitente || count($rh_empleados) === 0) {
-                return;
-            }
-
-            $tituloMensaje = 'Solicitud cambio de perfil Folio #' . $folio . '. ('
-                . $empleadoRemitente->EMP_Nombre . ' ' . $empleadoRemitente->EMP_PrimerApellido . ')';
-            $cuerpoMensaje = 'El empleado solicitó modificar ' . $totalCambios . ' dato(s). ¿Desea revisar la solicitud?';
-            $fotoMensaje = is_null($empleadoRemitente->EMP_Fotografia) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
-            $accionMensaje = url('#capital-humano/permisos');
-
-            $permisosController = app(PermisosController::class);
-
-            foreach ($rh_empleados as $rh) {
-                try {
-                    $permisosController->sendAlert(
-                        $rh->USU_Nombre,
-                        $tituloMensaje,
-                        $cuerpoMensaje,
-                        'alert',
-                        $fotoMensaje,
-                        $accionMensaje
-                    );
-                } catch (\Throwable $e) {
-                    // Continuar notificando a los demás destinatarios.
-                }
-            }
-        } catch (\Throwable $e) {
-            // La notificación no debe impedir guardar la solicitud.
-        }
     }
 }

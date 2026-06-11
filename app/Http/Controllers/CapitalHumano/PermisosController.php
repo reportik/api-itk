@@ -4,7 +4,7 @@ namespace App\Http\Controllers\CapitalHumano;
 
 use DB;
 use App\Models\Empleados;
-use App\Models\UsuariosRPT;
+use App\Services\RhPermisosNotificacionService;
 use App\Http\Controllers\Controller;
 use App\Models\RPT\RPT_CHECADOR_INCIDENCIA as CHI;
 
@@ -254,14 +254,19 @@ class PermisosController extends Controller
 
             DB::commit();
 
-            $this->notificarRhNuevoPermiso($fila, $empleado);
+            $folio = $fila->CHI_Id;
+            $empleadoId = $this->getEmpleadoId();
+
+            dispatch(function () use ($folio, $empleadoId) {
+                app(RhPermisosNotificacionService::class)->notificarNuevoPermiso($folio, $empleadoId);
+            })->afterResponse();
 
             return response()->json([
                 'Status' => 'Valido',
                 'Mensaje' => self::MENSAJE_SOLICITUD_ENVIADA,
-                'folio' => $fila->CHI_Id,
+                'folio' => $folio,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return response()->json([
@@ -375,6 +380,13 @@ class PermisosController extends Controller
         $userdata = auth()->user();
 
         return $userdata ? $userdata['USU_Nombre'] : null;
+    }
+
+    private function getEmpleadoId()
+    {
+        $userdata = auth()->user();
+
+        return $userdata ? $userdata['USU_EMP_EmpleadoId'] : null;
     }
 
     private function consultarPermisosEmpleado($empleado)
@@ -575,66 +587,33 @@ class PermisosController extends Controller
         return $timestamp ? (new \DateTime())->setTimestamp($timestamp) : null;
     }
 
-    private function notificarRhNuevoPermiso($fila, $empleado)
+    private function notificarRhNuevoPermiso($folio, $empleadoId)
     {
-        try {
-            $rh_empleados = DB::select("
-                SELECT u.USU_Nombre
-                FROM RPT_EmpleadoCamposAdicionales eca
-                INNER JOIN Empleados e ON e.EMP_EmpleadoId = eca.ECA_EmpleadoId
-                INNER JOIN Usuarios u ON u.USU_EMP_EmpleadoId = e.EMP_EmpleadoId
-                WHERE eca.ECA_Eliminado = 0
-                    AND eca.ECA_GestionaPermisosNotificacion = 1
-                    AND e.EMP_Activo = 1
-            ");
-
-            $userdata = auth()->user();
-            $empleadoId = $userdata['USU_EMP_EmpleadoId'] ?? null;
-            if (!$empleadoId) {
-                return;
-            }
-
-            $empleadoRemitente = Empleados::find($empleadoId);
-            if (!$empleadoRemitente) {
-                return;
-            }
-
-            $tituloMensaje = 'Nuevo Permiso Folio #' . $fila->CHI_Id . '. (' . $empleadoRemitente->EMP_Nombre . ' ' . $empleadoRemitente->EMP_PrimerApellido . ')';
-            $cuerpoMensaje = '¿Desea revisar el permiso ahora?';
-            $fotoMensaje = (is_null($empleadoRemitente->EMP_Fotografia)) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
-            $accionMensaje = url('#capital-humano/permisos');
-
-            foreach ($rh_empleados as $value) {
-                $this->sendAlert($value->USU_Nombre, $tituloMensaje, $cuerpoMensaje, 'alert', $fotoMensaje, $accionMensaje);
-            }
-        } catch (\Exception $e) {
-            // La notificación no debe impedir guardar la solicitud.
-        }
+        app(RhPermisosNotificacionService::class)->notificarNuevoPermiso($folio, $empleadoId);
     }
 
     public function sendAlert($codigoEmpDestinatario, $tituloMensaje, $cuerpoMensaje, $tipoMensaje, $fotoMensaje, $accionMensaje)
     {
-        $user = UsuariosRPT::where('nomina', $codigoEmpDestinatario)->first();
-        if (!$user) {
-            return response()->json(['status' => false, 'message' => 'Usuario no encontrado']);
+        try {
+            app(RhPermisosNotificacionService::class)->enviarAlerta(
+                $codigoEmpDestinatario,
+                $tituloMensaje,
+                $cuerpoMensaje,
+                $tipoMensaje,
+                $fotoMensaje,
+                $accionMensaje,
+                'manual'
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Notificado',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ]);
         }
-
-        $details = [
-            'title' => $tituloMensaje,
-            'body' => $cuerpoMensaje,
-            'type' => $tipoMensaje,
-            'foto' => $fotoMensaje,
-            'action' => $accionMensaje,
-            'aplicativo' => "'mi-nomina', 'web'",
-        ];
-
-        $user->storeNewNotification($details);
-        event(new \App\Events\UserNotifyEvent($user->id, $details));
-        $user->fcmNotification($details);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Notificado',
-        ]);
     }
 }
