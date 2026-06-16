@@ -3,14 +3,14 @@
 namespace App\Services;
 
 use DB;
-use Log;
+// use Log;
 use App\Models\Empleados;
 use App\Models\UsuariosRPT;
 use App\Events\UserNotifyEvent;
 
 class RhPermisosNotificacionService
 {
-    const LOG_PREFIX = '[RH_NOTIF]';
+    // const LOG_PREFIX = '[RH_NOTIF]';
 
     public function notificarNuevoPermiso($folio, $empleadoId)
     {
@@ -44,19 +44,19 @@ class RhPermisosNotificacionService
         $contexto = 'manual',
         $folio = null
     ) {
-        Log::info(self::LOG_PREFIX . ' enviarAlerta inicio', [
-            'contexto' => $contexto,
-            'folio' => $folio,
-            'destinatario' => $codigoEmpDestinatario,
-        ]);
+        // Log::info(self::LOG_PREFIX . ' enviarAlerta inicio', [
+        //     'contexto' => $contexto,
+        //     'folio' => $folio,
+        //     'destinatario' => $codigoEmpDestinatario,
+        // ]);
 
         $user = UsuariosRPT::where('nomina', $codigoEmpDestinatario)->first();
         if (!$user) {
-            Log::warning(self::LOG_PREFIX . ' Usuario RPT no encontrado', [
-                'contexto' => $contexto,
-                'folio' => $folio,
-                'destinatario' => $codigoEmpDestinatario,
-            ]);
+            // Log::warning(self::LOG_PREFIX . ' Usuario RPT no encontrado', [
+            //     'contexto' => $contexto,
+            //     'folio' => $folio,
+            //     'destinatario' => $codigoEmpDestinatario,
+            // ]);
             throw new \RuntimeException('Usuario RPT no encontrado: ' . $codigoEmpDestinatario);
         }
 
@@ -81,64 +81,61 @@ class RhPermisosNotificacionService
             $user->fcmNotification($details);
         });
 
-        Log::info(self::LOG_PREFIX . ' enviarAlerta completado', [
-            'contexto' => $contexto,
-            'folio' => $folio,
-            'destinatario' => $codigoEmpDestinatario,
-            'userId' => $user->id,
-        ]);
+        // Log::info(self::LOG_PREFIX . ' enviarAlerta completado', [
+        //     'contexto' => $contexto,
+        //     'folio' => $folio,
+        //     'destinatario' => $codigoEmpDestinatario,
+        //     'userId' => $user->id,
+        // ]);
     }
 
     private function notificarGestores($contexto, $folio, $empleadoId, callable $mensajesBuilder)
     {
-        Log::info(self::LOG_PREFIX . ' inicio', [
-            'contexto' => $contexto,
-            'folio' => $folio,
-            'empleadoId' => $empleadoId,
-        ]);
+        // Log::info(self::LOG_PREFIX . ' inicio', [
+        //     'contexto' => $contexto,
+        //     'folio' => $folio,
+        //     'empleadoId' => $empleadoId,
+        // ]);
 
         try {
             if (!$empleadoId) {
-                Log::warning(self::LOG_PREFIX . ' empleadoId vacío', [
-                    'contexto' => $contexto,
-                    'folio' => $folio,
-                ]);
+                // Log::warning(self::LOG_PREFIX . ' empleadoId vacío', [
+                //     'contexto' => $contexto,
+                //     'folio' => $folio,
+                // ]);
                 return;
             }
 
             $gestoresRh = $this->obtenerGestoresRh();
             $empleadoRemitente = Empleados::find($empleadoId);
 
-            Log::info(self::LOG_PREFIX . ' destinatarios localizados', [
-                'contexto' => $contexto,
-                'folio' => $folio,
-                'gestoresRh' => count($gestoresRh),
-                'empleadoRemitente' => $empleadoRemitente ? $empleadoRemitente->EMP_EmpleadoId : null,
-            ]);
+            // Log::info(self::LOG_PREFIX . ' destinatarios localizados', [
+            //     'contexto' => $contexto,
+            //     'folio' => $folio,
+            //     'gestoresRh' => count($gestoresRh),
+            //     'empleadoRemitente' => $empleadoRemitente ? $empleadoRemitente->EMP_EmpleadoId : null,
+            // ]);
 
             if (!$empleadoRemitente) {
-                Log::warning(self::LOG_PREFIX . ' empleado remitente no encontrado', [
-                    'contexto' => $contexto,
-                    'folio' => $folio,
-                    'empleadoId' => $empleadoId,
-                ]);
+                // Log::warning(self::LOG_PREFIX . ' empleado remitente no encontrado', [
+                //     'contexto' => $contexto,
+                //     'folio' => $folio,
+                //     'empleadoId' => $empleadoId,
+                // ]);
                 return;
             }
 
             if (count($gestoresRh) === 0) {
-                Log::warning(self::LOG_PREFIX . ' sin gestores RH configurados', [
-                    'contexto' => $contexto,
-                    'folio' => $folio,
-                ]);
+                // Log::warning(self::LOG_PREFIX . ' sin gestores RH configurados', [
+                //     'contexto' => $contexto,
+                //     'folio' => $folio,
+                // ]);
                 return;
             }
 
             $mensajes = $mensajesBuilder($empleadoRemitente);
             $fotoMensaje = is_null($empleadoRemitente->EMP_Fotografia) ? 'SIN FOTO.png' : $empleadoRemitente->EMP_Fotografia;
             $accionMensaje = url('#capital-humano/permisos');
-
-            $enviados = 0;
-            $fallidos = 0;
 
             foreach ($gestoresRh as $gestor) {
                 try {
@@ -152,31 +149,27 @@ class RhPermisosNotificacionService
                         $contexto,
                         $folio
                     );
-                    $enviados++;
                 } catch (\Throwable $e) {
-                    $fallidos++;
-                    Log::error(self::LOG_PREFIX . ' fallo destinatario', [
-                        'contexto' => $contexto,
-                        'folio' => $folio,
-                        'destinatario' => $gestor->USU_Nombre,
-                        'error' => $e->getMessage(),
-                    ]);
+                    // Log::error(self::LOG_PREFIX . ' fallo destinatario', [
+                    //     'contexto' => $contexto,
+                    //     'folio' => $folio,
+                    //     'destinatario' => $gestor->USU_Nombre,
+                    //     'error' => $e->getMessage(),
+                    // ]);
                 }
             }
 
-            Log::info(self::LOG_PREFIX . ' fin', [
-                'contexto' => $contexto,
-                'folio' => $folio,
-                'enviados' => $enviados,
-                'fallidos' => $fallidos,
-            ]);
+            // Log::info(self::LOG_PREFIX . ' fin', [
+            //     'contexto' => $contexto,
+            //     'folio' => $folio,
+            // ]);
         } catch (\Throwable $e) {
-            Log::error(self::LOG_PREFIX . ' error general', [
-                'contexto' => $contexto,
-                'folio' => $folio,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            // Log::error(self::LOG_PREFIX . ' error general', [
+            //     'contexto' => $contexto,
+            //     'folio' => $folio,
+            //     'error' => $e->getMessage(),
+            //     'trace' => $e->getTraceAsString(),
+            // ]);
         }
     }
 
@@ -184,20 +177,20 @@ class RhPermisosNotificacionService
     {
         try {
             $callback();
-            Log::info(self::LOG_PREFIX . ' paso OK', [
-                'paso' => $paso,
-                'contexto' => $contexto,
-                'folio' => $folio,
-                'userId' => $userId,
-            ]);
+            // Log::info(self::LOG_PREFIX . ' paso OK', [
+            //     'paso' => $paso,
+            //     'contexto' => $contexto,
+            //     'folio' => $folio,
+            //     'userId' => $userId,
+            // ]);
         } catch (\Throwable $e) {
-            Log::error(self::LOG_PREFIX . ' paso FALLO', [
-                'paso' => $paso,
-                'contexto' => $contexto,
-                'folio' => $folio,
-                'userId' => $userId,
-                'error' => $e->getMessage(),
-            ]);
+            // Log::error(self::LOG_PREFIX . ' paso FALLO', [
+            //     'paso' => $paso,
+            //     'contexto' => $contexto,
+            //     'folio' => $folio,
+            //     'userId' => $userId,
+            //     'error' => $e->getMessage(),
+            // ]);
             throw $e;
         }
     }
