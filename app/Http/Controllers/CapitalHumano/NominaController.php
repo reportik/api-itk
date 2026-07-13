@@ -89,10 +89,10 @@ class NominaController extends Controller
 
             if ($status === self::STATUS_REJECTED) {
                 $obsLength = mb_strlen(trim((string) $observation));
-                if ($obsLength < 40 || $obsLength > 100) {
+                if ($obsLength < 20 || $obsLength > 100) {
                     return response()->json([
                         'Status' => 'Error',
-                        'Mensaje' => 'La observación debe tener entre 40 y 100 caracteres.',
+                        'Mensaje' => 'La observación debe tener entre 20 y 100 caracteres.',
                     ], 422);
                 }
             }
