@@ -257,7 +257,10 @@ class NominaController extends Controller
     private function mapPayrollToApp($row)
     {
         $payrollId = (string) $row->PAY_PayrollId;
-        $apiUrl = rtrim(config('app.url'), '/') . '/api/capital-humano/nomina/recibos/' . $payrollId . '/archivo';
+        $apiUrl = $this->getPublicApiBaseUrl()
+            . '/api/capital-humano/nomina/recibos/'
+            . $payrollId
+            . '/archivo';
 
         return [
             '_id' => $payrollId,
@@ -273,6 +276,28 @@ class NominaController extends Controller
             'url' => $apiUrl,
             'acceptedOrRejectedDate' => $this->formatDateIso($row->PAY_FechaAceptRech),
         ];
+    }
+
+    /**
+     * Base URL que la app puede alcanzar (WAN), no la IP LAN interna.
+     * Prioridad: NOMINA_PUBLIC_API_URL → host de la petición → APP_URL.
+     */
+    private function getPublicApiBaseUrl()
+    {
+        $configured = config('nomina.public_api_url');
+        if (!empty($configured)) {
+            return rtrim($configured, '/');
+        }
+
+        try {
+            if (request()) {
+                return rtrim(request()->root(), '/');
+            }
+        } catch (\Exception $e) {
+            // fallback abajo
+        }
+
+        return rtrim(config('app.url'), '/');
     }
 
     private function resolvePayrollFilePath($payroll)
