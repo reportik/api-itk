@@ -150,6 +150,70 @@ class NotificacionesController extends Controller
         }
     }
 
+    public function destroy($id)
+    {
+        try {
+            $rptUser = $this->getRptUser();
+            if (!$rptUser) {
+                return response()->json(['Status' => 'Error', 'Mensaje' => 'Usuario no encontrado.'], 401);
+            }
+
+            if (!$id) {
+                return response()->json(['Status' => 'Error', 'Mensaje' => 'Id de notificación requerido.'], 422);
+            }
+
+            $deleted = DB::delete("
+                DELETE FROM notifications
+                WHERE id = ?
+                    AND notifiable_id = ?
+            ", [$id, $rptUser->id]);
+
+            if (!$deleted) {
+                return response()->json([
+                    'Status' => 'Error',
+                    'Mensaje' => 'Notificación no encontrada.',
+                ], 404);
+            }
+
+            return response()->json([
+                'Status' => 'Valido',
+                'Mensaje' => 'Notificación eliminada.',
+                'unreadCount' => $this->countUnread($rptUser->id),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'Status' => 'Error',
+                'Mensaje' => 'No fue posible eliminar la notificación. ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroyAll()
+    {
+        try {
+            $rptUser = $this->getRptUser();
+            if (!$rptUser) {
+                return response()->json(['Status' => 'Error', 'Mensaje' => 'Usuario no encontrado.'], 401);
+            }
+
+            DB::delete("
+                DELETE FROM notifications
+                WHERE notifiable_id = ?
+            ", [$rptUser->id]);
+
+            return response()->json([
+                'Status' => 'Valido',
+                'Mensaje' => 'Notificaciones eliminadas.',
+                'unreadCount' => 0,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'Status' => 'Error',
+                'Mensaje' => 'No fue posible eliminar las notificaciones. ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function getRptUser()
     {
         $userdata = auth()->user();
