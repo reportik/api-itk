@@ -30,6 +30,8 @@ Route::group([
     Route::get('notificaciones/unread-count', [\App\Http\Controllers\NotificacionesController::class, 'unreadCount']);
     Route::post('notificaciones/read-all', [\App\Http\Controllers\NotificacionesController::class, 'markAllAsRead']);
     Route::post('notificaciones/{id}/read', [\App\Http\Controllers\NotificacionesController::class, 'markAsRead']);
+    Route::delete('notificaciones/all', [\App\Http\Controllers\NotificacionesController::class, 'destroyAll']);
+    Route::delete('notificaciones/{id}', [\App\Http\Controllers\NotificacionesController::class, 'destroy']);
 });
 
 Route::group(["middleware" => ["auth:api"], 'namespace' => 'App\Http\Controllers\Produccion'], function () {
