@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\CapitalHumano;
 
 use App\Http\Controllers\Controller;
-use App\Models\RPT\RPT_PAYROLL;
 use App\Services\PayrollFilenameParser;
 use Carbon\Carbon;
 use DB;
@@ -109,7 +108,7 @@ class NominaController extends Controller
                 ], 409);
             }
 
-            $now = Carbon::now();
+            $now = Carbon::now()->format('Ymd H:i:s');
             $update = [
                 'PAY_Estatus' => $status,
                 'PAY_FechaAceptRech' => $now,
@@ -119,11 +118,11 @@ class NominaController extends Controller
                 $update['PAY_Observacion'] = trim((string) $observation);
                 $update['PAY_Folio'] = $this->generateFolio();
             } else {
-                $update['PAY_Observacion'] = null;
-                $update['PAY_Folio'] = null;
+                $update['PAY_Observacion'] = DB::raw('NULL');
+                $update['PAY_Folio'] = DB::raw('NULL');
             }
 
-            RPT_PAYROLL::where('PAY_PayrollId', $id)->update($update);
+            DB::table('RPT_PAYROLLS')->where('PAY_PayrollId', $id)->update($update);
 
             return response()->json([
                 'Status' => 'Valido',
@@ -201,7 +200,7 @@ class NominaController extends Controller
                 'PAY_Descargado' => $isDownloaded ? 1 : 0,
             ];
 
-            $now = Carbon::now();
+            $now = Carbon::now()->format('Ymd H:i:s');
             if ($isViewed && empty($payroll->PAY_FechaVisto)) {
                 $update['PAY_FechaVisto'] = $now;
             }
@@ -209,7 +208,7 @@ class NominaController extends Controller
                 $update['PAY_FechaDescarga'] = $now;
             }
 
-            RPT_PAYROLL::where('PAY_PayrollId', $id)->update($update);
+            DB::table('RPT_PAYROLLS')->where('PAY_PayrollId', $id)->update($update);
 
             return response()->json([
                 'Status' => 'Valido',
