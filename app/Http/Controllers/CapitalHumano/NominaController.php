@@ -13,6 +13,7 @@ class NominaController extends Controller
     const STATUS_NEW = 'new';
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_REJECTED = 'rejected';
+    const STATUS_ARCHIVED = 'archivados';
 
     /** @var PayrollFilenameParser */
     private $filenameParser;
@@ -52,8 +53,9 @@ class NominaController extends Controller
                     PAY_RutaArchivo
                 FROM RPT_PAYROLLS
                 WHERE PAY_EmpleadoCodigo IN ({$placeholders})
+                    AND PAY_Estatus <> ?
                 ORDER BY PAY_FechaNomina DESC, PAY_FechaCreacion DESC
-            ", $variants);
+            ", array_merge($variants, [self::STATUS_ARCHIVED]));
 
             $data = array_map(function ($row) {
                 return $this->mapPayrollToApp($row);
@@ -250,7 +252,8 @@ class NominaController extends Controller
             FROM RPT_PAYROLLS
             WHERE PAY_PayrollId = ?
                 AND PAY_EmpleadoCodigo IN ({$placeholders})
-        ", $params);
+                AND PAY_Estatus <> ?
+        ", array_merge($params, [self::STATUS_ARCHIVED]));
     }
 
     private function mapPayrollToApp($row)
